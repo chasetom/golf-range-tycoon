@@ -1,0 +1,4372 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Golf Range Tycoon</title>
+  <style>
+    :root {
+      --bg: #f7ead0;
+      --panel: #fff6dc;
+      --ink: #2d2a26;
+      --muted: #7c715f;
+      --line: #3a322b;
+      --green: #5aa85d;
+      --green-dark: #2f6f3d;
+      --gold: #e6b85f;
+      --water: #79c6d5;
+      --clay: #d77a61;
+      --driver-color: #101614;
+      --sky-top: #ffd9b3;
+      --grass-main: #93c95f;
+      --fairway-start: #c9e87a;
+      --fairway-end: #61a856;
+      --hill-one: #3f8c55;
+      --hill-two: #61a85e;
+      --hill-three: #367f50;
+      --mat-top: #efe4bf;
+      --mat-base: #58785d;
+      --shadow: 0 14px 34px rgba(31, 48, 40, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .app {
+      width: 393px;
+      height: 852px;
+      max-width: 100vw;
+      max-height: 100vh;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: #fbfcfa;
+      box-shadow: 0 0 0 1px rgba(29, 42, 36, 0.08), 0 20px 60px rgba(29, 42, 36, 0.16);
+      scrollbar-width: none;
+    }
+
+    .app::-webkit-scrollbar {
+      display: none;
+    }
+
+    .startup {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 50% 18%, rgba(255,255,255,0.52), transparent 34%),
+        linear-gradient(180deg, #9fd2dd 0 42%, #5b9c61 42% 100%);
+      transition: opacity 260ms ease, visibility 260ms ease;
+    }
+
+    .startup.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .startup-card {
+      width: min(345px, calc(100vw - 34px));
+      min-height: 360px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.94);
+      border: 1px solid rgba(216,224,216,0.9);
+      box-shadow: 0 22px 60px rgba(29,42,36,0.22);
+      padding: 24px;
+      display: grid;
+      align-content: center;
+      gap: 16px;
+      text-align: center;
+    }
+
+    .startup-logo {
+      width: 76px;
+      height: 76px;
+      margin: 0 auto;
+      border-radius: 8px;
+      background:
+        radial-gradient(circle at 63% 34%, #fff 0 7px, transparent 8px),
+        linear-gradient(135deg, var(--green), #8bbf56);
+      position: relative;
+      box-shadow: inset 0 -14px 22px rgba(0,0,0,0.13);
+    }
+
+    .startup-logo::after {
+      content: "";
+      position: absolute;
+      left: 37px;
+      top: 20px;
+      height: 40px;
+      border-left: 3px solid #fff;
+      filter: drop-shadow(0 2px 2px rgba(29,42,36,0.18));
+    }
+
+    .startup h2 {
+      margin: 0;
+      font-size: 1.42rem;
+      line-height: 1.1;
+    }
+
+    .startup p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.94rem;
+      line-height: 1.42;
+    }
+
+    .loader {
+      width: 48px;
+      height: 48px;
+      margin: 8px auto 0;
+      border-radius: 50%;
+      border: 5px solid #dce7dc;
+      border-top-color: var(--green);
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .login-options {
+      display: grid;
+      gap: 10px;
+    }
+
+    .login-form {
+      display: grid;
+      gap: 10px;
+      text-align: left;
+    }
+
+    .login-form .btn {
+      width: 100%;
+    }
+
+    .tutorial {
+      position: fixed;
+      inset: 0;
+      z-index: 95;
+      padding: 18px;
+      background: transparent;
+      pointer-events: auto;
+    }
+
+    .tutorial[hidden] {
+      display: none;
+    }
+
+    .tutorial-card {
+      position: absolute;
+      left: var(--tutorial-left, 24px);
+      top: var(--tutorial-top, 120px);
+      width: min(345px, calc(100vw - 34px));
+      border-radius: 8px;
+      background: rgba(255,255,255,0.96);
+      border: 1px solid rgba(216,224,216,0.92);
+      box-shadow: 0 22px 60px rgba(29,42,36,0.24);
+      padding: 20px;
+      display: grid;
+      gap: 12px;
+      text-align: left;
+    }
+
+    .tutorial-card::after {
+      content: "";
+      position: absolute;
+      width: 0;
+      height: 0;
+      border: 13px solid transparent;
+    }
+
+    .tutorial-card.arrow-down::after {
+      left: var(--arrow-left, 50%);
+      bottom: -26px;
+      transform: translateX(-50%);
+      border-top-color: rgba(255,255,255,0.96);
+    }
+
+    .tutorial-card.arrow-up::after {
+      left: var(--arrow-left, 50%);
+      top: -26px;
+      transform: translateX(-50%);
+      border-bottom-color: rgba(255,255,255,0.96);
+    }
+
+    .tutorial-card.arrow-left::after {
+      left: -26px;
+      top: var(--arrow-top, 50%);
+      transform: translateY(-50%);
+      border-right-color: rgba(255,255,255,0.96);
+    }
+
+    .tutorial-card.arrow-right::after {
+      right: -26px;
+      top: var(--arrow-top, 50%);
+      transform: translateY(-50%);
+      border-left-color: rgba(255,255,255,0.96);
+    }
+
+    .tutorial-card h2 {
+      margin: 0;
+      font-size: 1.18rem;
+      line-height: 1.15;
+    }
+
+    .tutorial-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.42;
+    }
+
+    .tutorial-card .hint {
+      color: var(--green-dark);
+      font-size: 0.78rem;
+      font-weight: 850;
+      text-transform: uppercase;
+    }
+
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: #fbfcfa;
+      border-bottom: 1px solid var(--line);
+      padding: 12px 14px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--green), #8bbf56);
+      position: relative;
+      box-shadow: inset 0 -8px 14px rgba(0, 0, 0, 0.12);
+      flex: 0 0 auto;
+    }
+
+    .mark::before {
+      content: "";
+      position: absolute;
+      width: 7px;
+      height: 24px;
+      left: 19px;
+      top: 8px;
+      border-left: 2px solid #fff;
+    }
+
+    .mark::after {
+      content: "";
+      position: absolute;
+      left: 21px;
+      top: 8px;
+      border-top: 6px solid transparent;
+      border-bottom: 6px solid transparent;
+      border-left: 15px solid #fff;
+    }
+
+    h1 {
+      font-size: 1.08rem;
+      line-height: 1.1;
+      margin: 0;
+    }
+
+    .subtitle {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .top-actions {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 7px;
+      flex: 0 0 auto;
+      order: 50;
+      justify-content: end;
+      padding: 10px 12px;
+      background: #fbfcfa;
+      border-top: 1px solid var(--line);
+    }
+
+    .nav-btn {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      min-height: 36px;
+      padding: 0 10px;
+      background: #eef3ee;
+      color: var(--ink);
+      cursor: pointer;
+      font-weight: 800;
+      font-size: 0.82rem;
+    }
+
+    .nav-btn.active {
+      background: var(--green);
+      color: #fff;
+      border-color: var(--green);
+    }
+
+    .test-btn {
+      background: rgba(217, 166, 55, 0.22);
+      border-color: rgba(217, 166, 55, 0.5);
+      color: #684908;
+    }
+
+    .reset-btn {
+      background: rgba(217, 69, 55, 0.14);
+      border-color: rgba(217, 69, 55, 0.35);
+      color: #7b2017;
+    }
+
+    .dev-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+      padding: 0 14px 14px;
+      order: 40;
+      flex: 0 0 auto;
+    }
+
+    .app:not([data-current-view="tycoon"]) .dev-actions {
+      display: none;
+    }
+
+    .page {
+      display: none;
+      flex: 1 1 auto;
+      min-height: 0;
+      order: 20;
+      overflow: hidden;
+    }
+
+    .page.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .page-pad {
+      padding: 14px;
+      display: grid;
+      gap: 14px;
+      height: 100%;
+      overflow: hidden;
+      align-content: start;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .stat {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 9px 7px;
+      min-width: 0;
+    }
+
+    .stat b {
+      display: block;
+      font-size: 1.05rem;
+      line-height: 1.1;
+    }
+
+    .stat.pulse b {
+      animation: statPulse 0.45s ease;
+    }
+
+    @keyframes statPulse {
+      0% { transform: scale(1); color: var(--ink); }
+      45% { transform: scale(1.12); color: var(--green); }
+      100% { transform: scale(1); color: var(--ink); }
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 0.64rem;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 8px 18px rgba(31, 48, 40, 0.04);
+    }
+
+    .panel h2 {
+      font-size: 1rem;
+      margin: 0 0 12px;
+    }
+
+    .progress-list,
+    .leaderboard,
+    .shop-grid,
+    .handicap-card {
+      display: grid;
+      gap: 10px;
+    }
+
+    .progress-card,
+    .leader-card,
+    .shop-card,
+    .handicap-card {
+      background: #fbfcfa;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 11px;
+    }
+
+    .progress-row,
+    .leader-card,
+    .shop-card {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .progress-card h3,
+    .shop-card h3,
+    .leader-card h3,
+    .handicap-card h3 {
+      margin: 0 0 4px;
+      font-size: 0.94rem;
+    }
+
+    .progress-card p,
+    .shop-card p,
+    .leader-card p,
+    .handicap-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.35;
+    }
+
+    .progress-track {
+      height: 9px;
+      background: #e3ebe3;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 9px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: var(--progress, 0%);
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--green), var(--gold));
+      transition: width 420ms ease;
+    }
+
+    .level-pill {
+      min-width: 54px;
+      min-height: 34px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: var(--green);
+      font-weight: 900;
+      font-size: 0.82rem;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 11px;
+    }
+
+    .score-page .form-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    .course-search {
+      position: relative;
+    }
+
+    .course-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 96px;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .hole-select-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .course-results {
+      position: absolute;
+      z-index: 5;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      display: none;
+      max-height: 260px;
+      overflow: auto;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 6px;
+    }
+
+    .course-results.show {
+      display: grid;
+      gap: 5px;
+    }
+
+    .course-option {
+      width: 100%;
+      border: 0;
+      border-radius: 7px;
+      background: #fff;
+      color: var(--ink);
+      cursor: pointer;
+      display: grid;
+      gap: 3px;
+      padding: 10px;
+      text-align: left;
+    }
+
+    .course-option:hover,
+    .course-option:focus {
+      background: #eef3ee;
+      outline: none;
+    }
+
+    .course-option strong {
+      font-size: 0.92rem;
+    }
+
+    .course-option span {
+      color: var(--muted);
+      font-size: 0.8rem;
+      line-height: 1.35;
+    }
+
+    .course-source {
+      color: var(--muted);
+      font-size: 0.76rem;
+      line-height: 1.35;
+      margin-top: 7px;
+    }
+
+    .scorecard-upload {
+      border: 2px dashed rgba(58, 50, 43, 0.32);
+      border-radius: 8px;
+      padding: 12px;
+      background: rgba(255,255,255,0.36);
+      display: grid;
+      gap: 10px;
+    }
+
+    .scorecard-preview {
+      width: 100%;
+      min-height: 124px;
+      border: 2px solid rgba(58, 50, 43, 0.24);
+      border-radius: 6px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.72), rgba(238,243,238,0.5));
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 0.82rem;
+      text-align: center;
+    }
+
+    .scorecard-preview video,
+    .scorecard-preview canvas,
+    .scorecard-preview img {
+      width: 100%;
+      max-height: 220px;
+      object-fit: contain;
+      display: block;
+      image-rendering: auto;
+    }
+
+    .scorecard-preview video {
+      background: #111;
+    }
+
+    .scorecard-preview span {
+      padding: 18px;
+      line-height: 1.35;
+    }
+
+    .scan-result {
+      border: 2px solid rgba(58, 50, 43, 0.18);
+      border-radius: 7px;
+      padding: 10px;
+      background: rgba(255,255,255,0.62);
+      display: grid;
+      gap: 4px;
+    }
+
+    .scan-result strong {
+      font-size: 1.25rem;
+    }
+
+    .scan-result span {
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.35;
+    }
+
+    .hole-entry {
+      border: 2px solid rgba(58, 50, 43, 0.18);
+      border-radius: 8px;
+      padding: 12px;
+      background: rgba(255,255,255,0.46);
+    }
+
+    .score-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background: rgba(45,42,38,0.28);
+    }
+
+    .score-modal[hidden] {
+      display: none;
+    }
+
+    .score-modal-card {
+      width: min(355px, 100%);
+      max-height: 82vh;
+      overflow: auto;
+      border: 3px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 6px 6px 0 rgba(58,50,43,0.28);
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .score-modal-card h3 {
+      margin: 0;
+    }
+
+    .score-modal-card p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 0.8rem;
+      line-height: 1.35;
+    }
+
+    .hole-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+    }
+
+    .hole-cell {
+      display: grid;
+      gap: 4px;
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .hole-cell input {
+      padding: 7px 5px;
+      text-align: center;
+      font-weight: 900;
+      font-size: 16px;
+      appearance: textfield;
+      -moz-appearance: textfield;
+    }
+
+    .hole-cell input::-webkit-outer-spin-button,
+    .hole-cell input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    .hole-total {
+      margin-top: 10px;
+      font-weight: 900;
+      color: var(--green-dark);
+    }
+
+    .round-proof {
+      width: 100%;
+      margin-top: 10px;
+      border: 2px solid rgba(58, 50, 43, 0.2);
+      border-radius: 6px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.45);
+    }
+
+    .round-proof img {
+      width: 100%;
+      max-height: 180px;
+      object-fit: contain;
+      display: block;
+    }
+
+    label {
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 650;
+    }
+
+    input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      min-height: 40px;
+      padding: 9px 10px;
+      color: var(--ink);
+      background: #fff;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(47, 125, 74, 0.14);
+    }
+
+    input[readonly] {
+      background: #eef3ee;
+      color: var(--green-dark);
+      cursor: default;
+      font-weight: 750;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    .course-tools {
+      margin-top: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .course-tools .btn {
+      min-height: 34px;
+      padding: 0 10px;
+      font-size: 0.78rem;
+    }
+
+    .course-add-panel {
+      margin-top: 12px;
+      background: #fbfcfa;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .course-add-panel h3 {
+      margin: 0 0 10px;
+      font-size: 0.95rem;
+    }
+
+    .actions {
+      display: flex;
+      gap: 9px;
+      margin-top: 12px;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 7px;
+      min-height: 42px;
+      padding: 0 13px;
+      cursor: pointer;
+      font-weight: 750;
+      color: #fff;
+      background: var(--green);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      background: var(--green-dark);
+    }
+
+    .btn.secondary {
+      color: var(--ink);
+      background: #eef3ee;
+      border: 1px solid var(--line);
+    }
+
+    .btn.secondary:hover {
+      background: #e2eae2;
+    }
+
+    .content {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .range {
+      position: relative;
+      order: 10;
+      flex: 0 0 auto;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, var(--sky-top) 0 25%, #ffe6bd 25% 30%, var(--grass-main) 30% 100%);
+      height: 520px;
+      min-height: 520px;
+      transition: background 420ms ease;
+      image-rendering: pixelated;
+    }
+
+    .app:not([data-current-view="tycoon"]) .range {
+      display: none;
+    }
+
+    .range::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 6;
+      opacity: 0.1;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.45) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(29,42,36,0.32) 1px, transparent 1px);
+      background-size: 5px 5px;
+      mix-blend-mode: soft-light;
+    }
+
+    .range-sky {
+      position: absolute;
+      inset: 0 0 70%;
+      background:
+        radial-gradient(ellipse at 11% 58%, #fff1d2 0 5%, transparent 6%),
+        radial-gradient(ellipse at 28% 30%, #fff7df 0 4%, transparent 5%),
+        radial-gradient(ellipse at 58% 52%, #fff1d2 0 5%, transparent 6%),
+        radial-gradient(ellipse at 88% 42%, #fff1d2 0 6%, transparent 7%),
+        var(--sky-top);
+      z-index: 0;
+      border-bottom: 3px solid #3a322b;
+    }
+
+    .range-sky::before {
+      content: "";
+      position: absolute;
+      right: 42px;
+      top: 28px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #ffd75d;
+      box-shadow:
+        0 0 0 3px #3a322b,
+        0 -18px 0 -13px #ffd75d,
+        0 18px 0 -13px #ffd75d,
+        -18px 0 0 -13px #ffd75d,
+        18px 0 0 -13px #ffd75d,
+        -13px -13px 0 -12px #ffd75d,
+        13px -13px 0 -12px #ffd75d,
+        -13px 13px 0 -12px #ffd75d,
+        13px 13px 0 -12px #ffd75d;
+    }
+
+    .range-sky::after {
+      content: "";
+      position: absolute;
+      left: 34px;
+      top: 26px;
+      width: 42px;
+      height: 13px;
+      border-radius: 8px;
+      background: #fff3d7;
+      box-shadow:
+        10px -7px 0 2px #fff3d7,
+        34px 3px 0 0 #fff3d7,
+        126px 26px 0 1px #fff3d7,
+        144px 18px 0 5px #fff3d7,
+        174px 25px 0 0 #fff3d7,
+        230px 8px 0 1px #fff3d7,
+        252px 1px 0 4px #fff3d7,
+        286px 10px 0 0 #fff3d7;
+      opacity: 0.92;
+    }
+
+    .ball-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    .fairway {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 70%;
+      background:
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.18) 0 26px, rgba(49,96,52,0.08) 26px 52px),
+        linear-gradient(180deg, var(--fairway-start), var(--grass-main) 46%, var(--fairway-end));
+      border-radius: 0;
+      box-shadow: inset 0 3px 0 #3a322b;
+    }
+
+    .range-grid {
+      position: absolute;
+      inset: 31% 0 0;
+      background:
+        linear-gradient(90deg, rgba(58,50,43,0.12) 2px, transparent 2px),
+        linear-gradient(0deg, rgba(58,50,43,0.1) 2px, transparent 2px);
+      background-size: 58px 48px;
+      opacity: 0.18;
+    }
+
+    .bay-deck {
+      position: absolute;
+      left: 4%;
+      bottom: 74px;
+      width: 92%;
+      min-height: 62px;
+      padding: 0;
+    }
+
+    .stall-row {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .stall {
+      height: 58px;
+      background:
+        linear-gradient(90deg, transparent 0 44%, rgba(255,255,255,0.16) 44% 48%, transparent 48% 100%),
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.08) 0 3px, transparent 3px 8px),
+        linear-gradient(180deg, color-mix(in srgb, var(--mat-base), #fff 18%), var(--mat-base) 62%, color-mix(in srgb, var(--mat-base), #000 15%));
+      border: 3px solid #3a322b;
+      border-radius: 2px;
+      position: relative;
+      overflow: hidden;
+      box-shadow:
+        inset 0 5px 0 rgba(255,255,255,0.22),
+        inset 0 -5px 0 rgba(29,42,36,0.16),
+        3px 3px 0 rgba(58,50,43,0.22);
+    }
+
+    .stall.active {
+      box-shadow: 0 0 0 3px rgba(217, 166, 55, 0.22);
+    }
+
+    .stall:not(.occupied) .golfer {
+      opacity: 0;
+      transform: translateY(12px) scale(0.7);
+    }
+
+    .stall.entering .golfer {
+      animation: customerWalkIn 0.7s ease forwards;
+    }
+
+    .stall.leaving .golfer {
+      animation: customerWalkOut 0.7s ease forwards;
+    }
+
+    .stall:not(.occupied)::before {
+      opacity: 0;
+    }
+
+    .stall::before {
+      content: "";
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      top: 7px;
+      bottom: 7px;
+      border-radius: 3px;
+      border: 1px solid rgba(255,255,255,0.28);
+      background:
+        radial-gradient(ellipse at 68% 68%, rgba(29,42,36,0.22) 0 12%, transparent 13%),
+        linear-gradient(180deg, rgba(255,255,255,0.1), transparent);
+    }
+
+    .stall::after {
+      content: "";
+      position: absolute;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #fff;
+      right: 14px;
+      bottom: 17px;
+      box-shadow:
+        0 2px 3px rgba(29,42,36,0.28),
+        -7px 5px 0 -3px rgba(255,255,255,0.7);
+      z-index: 2;
+    }
+
+    .golfer {
+      position: absolute;
+      left: 4px;
+      bottom: 4px;
+      width: 30px;
+      height: 47px;
+      transform-origin: 50% 100%;
+      transform: scale(0.68);
+      z-index: 3;
+    }
+
+    .player-head,
+    .player-cap,
+    .player-shirt,
+    .player-arm,
+    .player-leg {
+      position: absolute;
+    }
+
+    .player-head {
+      left: 12px;
+      top: 7px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #f1c99d;
+      box-shadow: inset -2px -1px 0 rgba(0,0,0,0.08);
+    }
+
+    .player-cap {
+      left: 10px;
+      top: 3px;
+      width: 17px;
+      height: 8px;
+      border-radius: 8px 8px 3px 3px;
+      background: #254f9b;
+    }
+
+    .player-cap::after {
+      content: "";
+      position: absolute;
+      right: -7px;
+      top: 4px;
+      width: 9px;
+      height: 3px;
+      border-radius: 999px;
+      background: #254f9b;
+    }
+
+    .player-shirt {
+      left: 8px;
+      top: 19px;
+      width: 19px;
+      height: 18px;
+      border-radius: 7px 7px 4px 4px;
+      background: linear-gradient(180deg, #2f7d4a, #1f5e38);
+      box-shadow: inset 0 -4px 0 rgba(0,0,0,0.14);
+    }
+
+    .player-arm {
+      left: 20px;
+      top: 22px;
+      width: 18px;
+      height: 5px;
+      border-radius: 999px;
+      background: #f1c99d;
+      transform: rotate(28deg);
+      transform-origin: 0 50%;
+    }
+
+    .player-leg {
+      left: 13px;
+      top: 35px;
+      width: 5px;
+      height: 17px;
+      border-radius: 999px;
+      background: #273c33;
+      transform: rotate(13deg);
+      transform-origin: 50% 0;
+    }
+
+    .player-leg.back {
+      left: 22px;
+      transform: rotate(-17deg);
+    }
+
+    .club {
+      position: absolute;
+      left: 23px;
+      top: 14px;
+      width: 2px;
+      height: 38px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #d8dde0, #26362f);
+      transform: rotate(-42deg);
+      transform-origin: 50% 8%;
+    }
+
+    .club::before {
+      content: "";
+      position: absolute;
+      left: -3px;
+      top: -5px;
+      width: 9px;
+      height: 8px;
+      border-radius: 6px 6px 2px 2px;
+      background: linear-gradient(180deg, color-mix(in srgb, var(--driver-color), #fff 18%), var(--driver-color));
+      transform: rotate(18deg) skewX(-8deg);
+      box-shadow: inset 0 -2px 0 rgba(255,255,255,0.22);
+    }
+
+    .club::after {
+      content: "";
+      position: absolute;
+      left: -10px;
+      bottom: -7px;
+      width: 20px;
+      height: 10px;
+      border-radius: 15px 15px 9px 9px;
+      background: linear-gradient(180deg, color-mix(in srgb, var(--driver-color), #fff 24%), var(--driver-color));
+      transform: rotate(-12deg) skewX(-12deg);
+      box-shadow: inset -5px -4px 0 rgba(255,255,255,0.22), 0 2px 2px rgba(0,0,0,0.2);
+    }
+
+    .stall.active .golfer {
+      animation: golferWeightShift 0.82s cubic-bezier(0.18, 0.74, 0.28, 1);
+    }
+
+    .stall.active .player-arm {
+      animation: armSwing 0.82s cubic-bezier(0.18, 0.74, 0.28, 1);
+    }
+
+    .stall.active .club {
+      animation: clubSwing 0.82s cubic-bezier(0.18, 0.74, 0.28, 1);
+    }
+
+    @keyframes clubSwing {
+      0% {
+        transform: rotate(-48deg);
+      }
+      18% {
+        transform: rotate(-78deg);
+      }
+      38% {
+        transform: rotate(-148deg);
+      }
+      46% {
+        transform: rotate(-142deg);
+      }
+      68% {
+        transform: rotate(36deg);
+      }
+      82% {
+        transform: rotate(24deg);
+      }
+      100% {
+        transform: rotate(-42deg);
+      }
+    }
+
+    @keyframes golferWeightShift {
+      0% {
+        transform: scale(0.68) rotate(0deg);
+      }
+      18% {
+        transform: scale(0.68) rotate(-4deg) translateX(-1px);
+      }
+      38% {
+        transform: scale(0.68) rotate(-14deg) translateX(-3px);
+      }
+      46% {
+        transform: scale(0.68) rotate(-13deg) translateX(-3px);
+      }
+      68% {
+        transform: scale(0.68) rotate(13deg) translateX(3px);
+      }
+      82% {
+        transform: scale(0.68) rotate(9deg) translateX(2px);
+      }
+      100% {
+        transform: scale(0.68) rotate(0deg);
+      }
+    }
+
+    @keyframes armSwing {
+      0% {
+        transform: rotate(28deg);
+      }
+      18% {
+        transform: rotate(-26deg) translateX(-1px);
+      }
+      38% {
+        transform: rotate(-96deg) translateX(-3px);
+      }
+      46% {
+        transform: rotate(-92deg) translateX(-3px);
+      }
+      68% {
+        transform: rotate(72deg) translateX(3px);
+      }
+      82% {
+        transform: rotate(54deg) translateX(2px);
+      }
+      100% {
+        transform: rotate(28deg);
+      }
+    }
+
+    .shot-wind {
+      position: absolute;
+      left: var(--wind-x);
+      top: var(--wind-y);
+      width: calc(42px * var(--power, 1));
+      height: 20px;
+      pointer-events: none;
+      transform: translate(-8px, -50%) rotate(var(--wind-angle, -18deg));
+      opacity: 0;
+      z-index: 5;
+      animation: shotWind 0.62s ease-out forwards;
+    }
+
+    .shot-wind::before,
+    .shot-wind::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 3px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.78);
+      box-shadow: 0 0 10px rgba(255,255,255,0.45);
+    }
+
+    .shot-wind::before {
+      top: 4px;
+    }
+
+    .shot-wind::after {
+      bottom: 4px;
+      width: 70%;
+      left: 18%;
+    }
+
+    @keyframes shotWind {
+      0% {
+        opacity: 0;
+        transform: translate(-8px, -50%) rotate(var(--wind-angle, -18deg)) scaleX(0.2);
+      }
+      24% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0;
+        transform: translate(calc(18px * var(--power, 1)), -50%) rotate(var(--wind-angle, -18deg)) scaleX(1);
+      }
+    }
+
+    @keyframes customerWalkIn {
+      0% {
+        opacity: 0;
+        transform: translateY(190px) scale(0.7);
+      }
+      65% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 1;
+        transform: scale(0.68);
+      }
+    }
+
+    @keyframes customerWalkOut {
+      0% {
+        opacity: 1;
+        transform: scale(0.68);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(190px) scale(0.7);
+      }
+    }
+
+    .flying-ball {
+      position: absolute;
+      left: var(--start-x);
+      top: var(--start-y);
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid rgba(29, 42, 36, 0.24);
+      box-shadow: 0 4px 10px rgba(29, 42, 36, 0.34);
+      animation: ballFlight var(--flight-time, 1.9s) cubic-bezier(0.2, 0.78, 0.25, 1) forwards;
+    }
+
+    .landed-ball {
+      position: absolute;
+      left: var(--ball-x);
+      top: var(--ball-y);
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #fff;
+      border: 1px solid rgba(29, 42, 36, 0.18);
+      box-shadow: 0 2px 4px rgba(29, 42, 36, 0.28);
+      opacity: 0;
+      animation: ballLand 0.32s ease forwards;
+    }
+
+    .landed-ball.collecting {
+      animation: ballCollect 0.42s ease forwards;
+    }
+
+    @keyframes ballLand {
+      0% {
+        transform: scale(1.7);
+        opacity: 0;
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    @keyframes ballCollect {
+      100% {
+        transform: translateY(-10px) scale(0.2);
+        opacity: 0;
+      }
+    }
+
+    @keyframes ballFlight {
+      0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0;
+      }
+      8% {
+        opacity: 1;
+      }
+      45% {
+        transform: translate(calc(var(--end-x) * 0.52), calc(var(--end-y) - var(--arc))) scale(0.9);
+      }
+      100% {
+        transform: translate(var(--end-x), var(--end-y)) scale(0.55);
+        opacity: 0;
+      }
+    }
+
+    .target {
+      position: absolute;
+      border-radius: 50%;
+      border: 3px solid #3a322b;
+      background:
+        radial-gradient(circle, #d93c3c 0 12%, #fff 13% 24%, #2f7d4a 25% 39%, #fff 40% 54%, var(--target-color, var(--gold)) 55% 100%);
+      box-shadow: 4px 4px 0 rgba(58,50,43,0.24), inset 0 0 0 2px rgba(255,255,255,0.45);
+      display: grid;
+      place-items: center;
+      transform: rotateX(58deg);
+    }
+
+    .target::after {
+      content: "";
+      width: 18%;
+      height: 18%;
+      border-radius: 50%;
+      background: #d93c3c;
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.65);
+    }
+
+    .target.one {
+      width: 74px;
+      height: 74px;
+      left: 12%;
+      bottom: 38%;
+      --target-color: var(--gold);
+    }
+
+    .target.two {
+      width: 58px;
+      height: 58px;
+      left: 42%;
+      bottom: 50%;
+      --target-color: var(--clay);
+    }
+
+    .target.three {
+      width: 52px;
+      height: 52px;
+      right: 10%;
+      bottom: 37%;
+      --target-color: var(--water);
+    }
+
+    .target.four {
+      width: 34px;
+      height: 34px;
+      left: 26%;
+      bottom: 61%;
+      --target-color: #8bbf56;
+    }
+
+    .target.five {
+      width: 30px;
+      height: 30px;
+      left: 53%;
+      bottom: 63%;
+      --target-color: #d946ef;
+    }
+
+    .target.six {
+      width: 28px;
+      height: 28px;
+      right: 28%;
+      bottom: 58%;
+      --target-color: #f59e0b;
+    }
+
+    .bullseye-pop {
+      position: absolute;
+      left: var(--pop-x, 50%);
+      top: var(--pop-y, 16%);
+      transform: translate(-50%, 12px) scale(0.62);
+      min-width: 102px;
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: linear-gradient(180deg, #ffffff, #fff4f4);
+      color: #1d2a24;
+      border: 3px solid #d93c3c;
+      box-shadow: 0 10px 22px rgba(31, 48, 40, 0.24), 0 0 0 3px rgba(217,60,60,0.1);
+      font-size: 0.76rem;
+      font-weight: 900;
+      text-align: center;
+      pointer-events: none;
+      z-index: 10;
+      opacity: 0;
+      animation: bullseyePop 1.4s ease-out forwards;
+    }
+
+    .bullseye-pop::before {
+      content: "";
+      display: block;
+      width: 28px;
+      height: 28px;
+      margin: 0 auto 4px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle, #d93c3c 0 20%, #fff 21% 38%, #d93c3c 39% 58%, #fff 59% 100%);
+      border: 2px solid #d93c3c;
+      box-shadow: 0 4px 10px rgba(217,60,60,0.24);
+    }
+
+    @keyframes bullseyePop {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, 12px) scale(0.62);
+      }
+      18% {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(0.94);
+      }
+      72% {
+        opacity: 1;
+        transform: translate(-50%, -26px) scale(0.9);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -58px) scale(0.82);
+      }
+    }
+
+    .cart {
+      position: absolute;
+      left: -120px;
+      top: 76%;
+      width: 86px;
+      height: 60px;
+      background: url("cart-sprite.png") center / contain no-repeat;
+      border: 0;
+      box-shadow: none;
+      z-index: 5;
+      transition: left 120ms linear, top 120ms linear, transform 120ms linear;
+      image-rendering: pixelated;
+    }
+
+    .cart.locked {
+      display: none;
+    }
+
+    .cart-cage {
+      position: absolute;
+      left: 31px;
+      top: 11px;
+      width: 32px;
+      height: 27px;
+      border: 2px solid rgba(70, 76, 76, 0.9);
+      background:
+        linear-gradient(90deg, rgba(70,76,76,0.74) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(70,76,76,0.74) 1px, transparent 1px);
+      background-size: 6px 6px;
+      box-shadow: inset 0 0 0 1px rgba(210, 216, 210, 0.32);
+      pointer-events: none;
+    }
+
+    .cart-wheel {
+      position: absolute;
+      left: 7px;
+      bottom: 2px;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      border: 3px solid rgba(38, 38, 43, 0.9);
+      background:
+        linear-gradient(90deg, transparent 42%, #f3f1e9 43% 57%, transparent 58%),
+        linear-gradient(0deg, transparent 42%, #f3f1e9 43% 57%, transparent 58%),
+        #4b4b4d;
+      animation: cartWheelSpin 0.42s linear infinite;
+      pointer-events: none;
+    }
+
+    .cart-wheel.back {
+      left: auto;
+      right: 8px;
+      bottom: 0;
+    }
+
+    @keyframes cartWheelSpin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+
+    .range-badge {
+      position: absolute;
+      top: 22px;
+      left: 22px;
+      background: rgba(255,255,255,0.9);
+      border: 3px solid #3a322b;
+      border-radius: 2px;
+      padding: 10px 12px;
+      box-shadow: 4px 4px 0 rgba(31, 48, 40, 0.12);
+    }
+
+    .range-badge strong {
+      display: block;
+      font-size: 0.98rem;
+    }
+
+    .range-badge span {
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .dashboard {
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .quick-upgrades {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      z-index: 8;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 7px;
+    }
+
+    .quick-upgrade {
+      border: 2px solid rgba(255,255,255,0.46);
+      border-radius: 2px;
+      min-height: 48px;
+      padding: 7px 5px;
+      background: rgba(255,255,255,0.24);
+      color: var(--ink);
+      backdrop-filter: blur(8px);
+      box-shadow: 3px 3px 0 rgba(31, 48, 40, 0.14);
+      cursor: pointer;
+      display: grid;
+      align-content: center;
+      gap: 2px;
+      font-weight: 850;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, border-color 160ms ease;
+    }
+
+    .quick-upgrade span {
+      color: #2f3b34;
+      font-size: 0.66rem;
+      font-weight: 800;
+      text-transform: none;
+    }
+
+    .quick-upgrade.can-afford {
+      background: linear-gradient(180deg, rgba(255,255,255,0.78), rgba(255,226,117,0.52));
+      border-color: #ffd75d;
+      box-shadow:
+        0 0 0 2px rgba(255,215,93,0.24),
+        0 0 10px rgba(255,215,93,0.55),
+        3px 3px 0 rgba(58,50,43,0.24);
+      animation: upgradeGlow 1.35s ease-in-out infinite alternate;
+    }
+
+    .quick-upgrade.can-afford:hover {
+      transform: translateY(-2px);
+    }
+
+    @keyframes upgradeGlow {
+      0% {
+        box-shadow:
+          0 0 0 2px rgba(255,215,93,0.2),
+          0 0 8px rgba(255,215,93,0.45),
+          3px 3px 0 rgba(58,50,43,0.24);
+      }
+      100% {
+        box-shadow:
+          0 0 0 3px rgba(255,215,93,0.32),
+          0 0 15px rgba(255,215,93,0.68),
+          3px 3px 0 rgba(58,50,43,0.24);
+      }
+    }
+
+    .quick-upgrade:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      animation: none;
+    }
+
+    .range-decoration {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .decor {
+      position: absolute;
+      filter: drop-shadow(0 5px 5px rgba(29, 42, 36, 0.18));
+    }
+
+    .decor.flowers {
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      background:
+        radial-gradient(circle at 9% 43%, #f472b6 0 3px, transparent 4px),
+        radial-gradient(circle at 18% 55%, #facc15 0 3px, transparent 4px),
+        radial-gradient(circle at 28% 37%, #fb7185 0 3px, transparent 4px),
+        radial-gradient(circle at 39% 50%, #e879f9 0 3px, transparent 4px),
+        radial-gradient(circle at 56% 41%, #f472b6 0 3px, transparent 4px),
+        radial-gradient(circle at 68% 54%, #facc15 0 3px, transparent 4px),
+        radial-gradient(circle at 82% 38%, #fb7185 0 3px, transparent 4px),
+        radial-gradient(circle at 91% 50%, #e879f9 0 3px, transparent 4px);
+    }
+
+    .decor.flowers::before,
+    .decor.flowers::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background:
+        radial-gradient(circle at 14% 63%, #fb7185 0 2px, transparent 3px),
+        radial-gradient(circle at 25% 58%, #f472b6 0 2px, transparent 3px),
+        radial-gradient(circle at 47% 62%, #facc15 0 2px, transparent 3px),
+        radial-gradient(circle at 74% 61%, #e879f9 0 2px, transparent 3px),
+        radial-gradient(circle at 88% 58%, #f472b6 0 2px, transparent 3px);
+    }
+
+    .decor.flowers::before {
+      transform: none;
+    }
+
+    .decor.flowers::after {
+      transform: none;
+      background:
+        radial-gradient(circle at 12% 31%, #facc15 0 2px, transparent 3px),
+        radial-gradient(circle at 31% 45%, #e879f9 0 2px, transparent 3px),
+        radial-gradient(circle at 52% 34%, #fb7185 0 2px, transparent 3px),
+        radial-gradient(circle at 77% 46%, #f472b6 0 2px, transparent 3px);
+    }
+
+    .decor.lights {
+      left: 10%;
+      right: 10%;
+      bottom: 39%;
+      height: 28px;
+      border-top: 2px solid rgba(29, 42, 36, 0.34);
+      background:
+        radial-gradient(circle at 12% 5px, #fff5a8 0 4px, transparent 5px),
+        radial-gradient(circle at 28% 9px, #b7f7ff 0 4px, transparent 5px),
+        radial-gradient(circle at 45% 4px, #ffe5f2 0 4px, transparent 5px),
+        radial-gradient(circle at 62% 9px, #fff5a8 0 4px, transparent 5px),
+        radial-gradient(circle at 80% 5px, #b7f7ff 0 4px, transparent 5px);
+    }
+
+    .decor.fountain {
+      left: 50%;
+      bottom: 44%;
+      width: 104px;
+      height: 48px;
+      border-radius: 56% 44% 52% 48%;
+      background:
+        radial-gradient(ellipse at 36% 28%, rgba(255,255,255,0.72) 0 10%, transparent 11%),
+        radial-gradient(ellipse at 62% 68%, #8fd6e6 0 28%, #5b9eab 60%, #3c7f89 100%);
+      transform: translateX(-50%) rotate(-5deg);
+      border: 2px solid rgba(255,255,255,0.64);
+    }
+
+    .upgrades {
+      display: grid;
+      gap: 10px;
+    }
+
+    .upgrade {
+      display: grid;
+      grid-template-columns: 44px 1fr auto;
+      gap: 11px;
+      align-items: center;
+      background: #fbfcfa;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    .icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: #e7f0e6;
+      color: var(--green-dark);
+      font-weight: 900;
+    }
+
+    .upgrade h3,
+    .round h3 {
+      margin: 0 0 3px;
+      font-size: 0.96rem;
+    }
+
+    .upgrade p,
+    .round p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.35;
+    }
+
+    .buy {
+      min-width: 84px;
+    }
+
+    .buy:disabled {
+      cursor: not-allowed;
+      opacity: 0.46;
+    }
+
+    .club-card.equipped .buy:disabled {
+      opacity: 1;
+      background: var(--club-color);
+      color: #fff;
+    }
+
+    .rounds {
+      display: grid;
+      gap: 9px;
+      max-height: 330px;
+      overflow: auto;
+      padding-right: 3px;
+    }
+
+    .round {
+      background: #fbfcfa;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 11px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .clubs {
+      display: grid;
+      gap: 10px;
+    }
+
+    .club-card {
+      display: grid;
+      grid-template-columns: 54px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      background: #fbfcfa;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    .club-card.equipped {
+      border-color: color-mix(in srgb, var(--club-color), #ffffff 25%);
+      background: linear-gradient(90deg, color-mix(in srgb, var(--club-color), #ffffff 88%), #fbfcfa 58%);
+      box-shadow: 0 8px 18px rgba(31, 48, 40, 0.08);
+    }
+
+    .club-card.locked {
+      background: #f1f3f1;
+    }
+
+    .club-swatch {
+      width: 54px;
+      height: 42px;
+      border-radius: 8px;
+      background:
+        linear-gradient(125deg, transparent 0 48%, rgba(255,255,255,0.55) 49% 53%, transparent 54%),
+        var(--club-color);
+      box-shadow: inset 0 -8px 12px rgba(0,0,0,0.18);
+      position: relative;
+    }
+
+    .club-card.locked .club-swatch {
+      --club-color: #9aa39d;
+      filter: grayscale(1);
+      opacity: 0.55;
+    }
+
+    .club-card.equipped .club-swatch {
+      outline: 3px solid color-mix(in srgb, var(--club-color), #ffffff 35%);
+      outline-offset: 2px;
+      box-shadow: inset 0 -8px 12px rgba(0,0,0,0.18), 0 0 0 1px rgba(29,42,36,0.12);
+    }
+
+    .club-swatch::after {
+      content: "";
+      position: absolute;
+      right: 7px;
+      bottom: 5px;
+      width: 22px;
+      height: 12px;
+      border-radius: 12px 12px 7px 7px;
+      background: rgba(0,0,0,0.5);
+    }
+
+    .club-card h3 {
+      margin: 0 0 3px;
+      font-size: 0.96rem;
+    }
+
+    .club-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.35;
+    }
+
+    .shop-card {
+      grid-template-columns: 54px 1fr auto;
+    }
+
+    .shop-preview {
+      width: 54px;
+      height: 44px;
+      border-radius: 8px;
+      border: 1px solid rgba(29, 42, 36, 0.12);
+      background:
+        linear-gradient(180deg, var(--preview-sky, #acd4dd) 0 45%, var(--preview-grass, #79b867) 46% 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .shop-preview::after {
+      content: "";
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      bottom: 7px;
+      height: 14px;
+      border-radius: 50% 50% 0 0;
+      background: var(--preview-accent, #4a9850);
+    }
+
+    .shop-preview.decor-preview {
+      background: #eef3ee;
+    }
+
+    .shop-preview.decor-preview::after {
+      left: 13px;
+      right: 13px;
+      bottom: 10px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--preview-accent, #f472b6);
+      box-shadow: 14px 4px 0 -3px var(--preview-extra, #facc15), -13px 5px 0 -4px var(--green);
+    }
+
+    .leader-rank {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: #e7f0e6;
+      color: var(--green-dark);
+      font-weight: 900;
+    }
+
+    .leader-score {
+      text-align: right;
+      font-weight: 900;
+      color: var(--green-dark);
+    }
+
+    .leader-card {
+      grid-template-columns: 38px 1fr auto;
+    }
+
+    .leader-card.player {
+      border-color: rgba(217, 166, 55, 0.55);
+      background: rgba(217, 166, 55, 0.1);
+    }
+
+    .round-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .tag {
+      padding: 4px 7px;
+      border-radius: 999px;
+      background: #eef3ee;
+    }
+
+    .empty {
+      color: var(--muted);
+      background: #fbfcfa;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      line-height: 1.45;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%) translateY(20px);
+      opacity: 0;
+      pointer-events: none;
+      background: #1d2a24;
+      color: #fff;
+      padding: 12px 15px;
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      transition: 180ms ease;
+      max-width: calc(100vw - 30px);
+      text-align: center;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 430px) {
+      .form-grid,
+      .score-page .stat-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .bay-deck {
+        left: 4%;
+        width: 92%;
+        bottom: 72px;
+        min-height: 58px;
+      }
+
+      .quick-upgrades {
+        bottom: 10px;
+      }
+
+      .stall-row {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 5px;
+      }
+
+      .stall {
+        height: 52px;
+      }
+
+      .golfer {
+        transform: scale(0.68);
+        transform-origin: 0 100%;
+      }
+
+      .upgrade {
+        grid-template-columns: 40px 1fr;
+      }
+
+      .buy {
+        grid-column: 1 / -1;
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="startup" id="startupScreen">
+    <section class="startup-card" id="loadingPanel">
+      <div class="startup-logo" aria-hidden="true"></div>
+      <div>
+        <h2>Golf Range Tycoon</h2>
+        <p>Loading your range...</p>
+      </div>
+      <div class="loader" aria-hidden="true"></div>
+    </section>
+
+    <section class="startup-card" id="loginPanel" hidden>
+      <div class="startup-logo" aria-hidden="true"></div>
+      <div>
+        <h2>Welcome</h2>
+        <p>Sign in with Apple when connected, or play as guest and save progress locally on this device.</p>
+      </div>
+      <div class="login-options">
+        <button class="btn" id="appleLoginBtn" type="button">Continue with Apple</button>
+        <button class="btn secondary" id="guestLoginBtn" type="button">Play as guest</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="tutorial" id="tutorialOverlay" hidden>
+    <section class="tutorial-card" id="tutorialCard"></section>
+  </div>
+
+  <main class="app" data-current-view="tycoon">
+    <div class="range" aria-label="Interactive golf range">
+      <div class="range-sky"></div>
+      <div class="fairway"></div>
+      <div class="range-grid"></div>
+      <div class="target one"></div>
+      <div class="target two"></div>
+      <div class="target three"></div>
+      <div class="target four"></div>
+      <div class="target five"></div>
+      <div class="target six"></div>
+      <div class="ball-layer" id="ballLayer"></div>
+      <div class="range-decoration" id="rangeDecor"></div>
+      <div class="quick-upgrades" id="quickUpgrades"></div>
+      <div class="bay-deck">
+        <div class="stall-row" id="stallRow"></div>
+      </div>
+      <div class="cart" id="rangeCart"><span class="cart-cage"></span><span class="cart-wheel front"></span><span class="cart-wheel back"></span></div>
+      <div class="range-badge">
+        <strong id="rangeName">Starter Range</strong>
+        <span id="rangeStatus">1 of 5 hitting bays open</span>
+      </div>
+    </div>
+
+    <nav class="top-actions" aria-label="Game menu">
+      <button class="nav-btn active" type="button" data-view="tycoon">Tycoon</button>
+      <button class="nav-btn" type="button" data-view="clubs">Clubs</button>
+      <button class="nav-btn" type="button" data-view="shop">Shop</button>
+      <button class="nav-btn" type="button" data-view="leaderboard">Leaders</button>
+      <button class="nav-btn" type="button" data-view="rounds">Rounds</button>
+      <button class="nav-btn" type="button" data-view="score">Score</button>
+    </nav>
+
+    <section class="page tycoon-page active" id="tycoonPage">
+      <section class="content">
+        <div class="page-pad">
+          <section class="stat-grid" aria-label="Tycoon stats">
+            <div class="stat">
+              <b id="points">0</b>
+              <span>Points</span>
+            </div>
+            <div class="stat">
+              <b id="income">0</b>
+              <span>Per sec</span>
+            </div>
+            <div class="stat">
+              <b id="level">1</b>
+              <span>Level</span>
+            </div>
+            <div class="stat">
+              <b id="roundCount">0</b>
+              <span>Rounds</span>
+            </div>
+          </section>
+          <section class="panel">
+            <h2>Progress</h2>
+            <div class="progress-list" id="progressList"></div>
+          </section>
+        </div>
+      </section>
+    </section>
+
+    <section class="page clubs-page" id="clubsPage">
+      <div class="page-pad">
+        <section class="panel">
+          <h2>Clubs</h2>
+          <div class="clubs" id="clubs"></div>
+        </section>
+      </div>
+    </section>
+
+    <section class="page rounds-page" id="roundsPage">
+      <div class="page-pad">
+        <section class="panel">
+          <h2>Handicap</h2>
+          <div class="handicap-card" id="handicapCard"></div>
+        </section>
+        <section class="panel">
+          <h2>Recent rounds</h2>
+          <div class="rounds" id="rounds"></div>
+        </section>
+      </div>
+    </section>
+
+    <section class="page shop-page" id="shopPage">
+      <div class="page-pad">
+        <section class="panel">
+          <h2>Range cosmetics</h2>
+          <div class="shop-grid" id="shopItems"></div>
+        </section>
+      </div>
+    </section>
+
+    <section class="page leaderboard-page" id="leaderboardPage">
+      <div class="page-pad">
+        <section class="panel">
+          <h2>Friends leaderboard</h2>
+          <div class="leaderboard" id="leaderboard"></div>
+        </section>
+      </div>
+    </section>
+
+    <section class="page score-page" id="scorePage">
+      <div class="page-pad">
+        <section class="panel">
+          <h2>Add a golf round</h2>
+          <form id="roundForm">
+            <div class="form-grid">
+              <div class="field full">
+                <div class="course-row">
+                  <div class="course-search">
+                    <label for="course">Course</label>
+                    <input id="course" name="course" autocomplete="off" placeholder="Start typing a course name" required>
+                    <div class="course-results" id="courseResults" role="listbox"></div>
+                  </div>
+                  <div class="hole-select-field">
+                    <label for="holeCount">Round</label>
+                    <select id="holeCount" name="holeCount">
+                      <option value="18">18 holes</option>
+                      <option value="9">9 holes</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="course-tools">
+                  <div class="course-source" id="courseSource">Choose a course from the list to lock in automatic difficulty.</div>
+                  <button class="btn secondary" id="showCourseFormBtn" type="button">Can't find your course?</button>
+                </div>
+              </div>
+              <div class="field full scorecard-upload">
+                <label>Scorecard scanner</label>
+                <div class="scorecard-preview" id="scorecardPreview">
+                  <video id="scorecardCamera" autoplay playsinline muted hidden></video>
+                  <canvas id="scorecardCanvas" hidden></canvas>
+                  <span id="scorecardPrompt">Tap scan and point the camera at the completed scorecard.</span>
+                </div>
+                <button class="btn secondary" id="scanScorecardBtn" type="button">Scan scorecard</button>
+                <button class="btn secondary" id="photoLibraryBtn" type="button">Use photo library</button>
+                <input id="scorecardPhoto" name="scorecardPhoto" type="file" accept="image/*" hidden>
+                <div class="scan-result" id="scoreScanResult">
+                  <strong>No scorecard saved</strong>
+                  <span>Choose your course first, then save a scorecard photo and enter each hole score manually.</span>
+                </div>
+              </div>
+            </div>
+            <input id="score" name="score" type="hidden">
+            <input id="par" name="par" type="hidden">
+            <input id="rating" name="rating" type="hidden">
+            <input id="slope" name="slope" type="hidden">
+            <div class="actions">
+              <button class="btn" type="submit">Submit entered scores</button>
+            </div>
+          </form>
+          <div class="score-modal" id="holeEntryPanel" hidden>
+            <div class="score-modal-card">
+              <div>
+                <h3>Enter score by hole</h3>
+                <p id="holeEntrySubtitle">Use the scores from your saved scorecard photo.</p>
+              </div>
+              <div class="hole-grid" id="holeScores"></div>
+              <div class="hole-total" id="holeTotal">Total score: 0</div>
+              <div class="actions">
+                <button class="btn" id="submitHoleScoresBtn" type="button">Submit round</button>
+                <button class="btn secondary" id="closeHoleScoresBtn" type="button">Close</button>
+              </div>
+            </div>
+          </div>
+          <div class="course-add-panel" id="courseAddPanel" hidden>
+            <h3>Add a course</h3>
+            <form id="courseForm">
+              <div class="form-grid">
+                <div class="field full">
+                  <label for="newCourseName">Course name</label>
+                  <input id="newCourseName" name="name" autocomplete="off" required>
+                </div>
+                <div class="field full">
+                  <label for="newCourseCity">City/state</label>
+                  <input id="newCourseCity" name="city" placeholder="City, Florida" required>
+                </div>
+                <div class="field">
+                  <label for="newCoursePar">Par</label>
+                  <input id="newCoursePar" name="par" type="number" min="27" max="75" required>
+                </div>
+                <div class="field">
+                  <label for="newCourseRating">Rating</label>
+                  <input id="newCourseRating" name="rating" type="number" min="25" max="78" step="0.1" required>
+                </div>
+                <div class="field">
+                  <label for="newCourseSlope">Slope</label>
+                  <input id="newCourseSlope" name="slope" type="number" min="55" max="155" required>
+                </div>
+                <div class="field">
+                  <label for="newCourseTees">Tee box</label>
+                  <input id="newCourseTees" name="tees" placeholder="Back tees" required>
+                </div>
+              </div>
+              <div class="actions">
+                <button class="btn" type="submit">Save course</button>
+                <button class="btn secondary" id="cancelCourseFormBtn" type="button">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Head to head preview</h2>
+          <p class="subtitle">Multiplayer can compare each player's score against the course rating and slope, then award the winner a larger point bonus.</p>
+        </section>
+      </div>
+    </section>
+
+    <div class="dev-actions">
+      <button class="nav-btn test-btn" id="testPointsBtn" type="button">+500k test points</button>
+      <button class="nav-btn reset-btn" id="resetBtn" type="button">Reset progress</button>
+    </div>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const STORAGE_KEY = "golf-range-tycoon-v1";
+    const FLORIDA_SEARCH_URL = "https://nominatim.openstreetmap.org/search";
+
+    const courseDatabase = [
+      {
+        name: "Weston Hills Country Club - Tour Course",
+        city: "Weston, Florida",
+        par: 72,
+        rating: 73.2,
+        slope: 137,
+        tees: "Back tees",
+        source: "Starter database entry. Confirm against the scorecard for the tee box played."
+      },
+      {
+        name: "Weston Hills Country Club - Players Course",
+        city: "Weston, Florida",
+        par: 72,
+        rating: 72.4,
+        slope: 132,
+        tees: "Back tees",
+        source: "Starter database entry. Confirm against the scorecard for the tee box played."
+      },
+      {
+        name: "Riviera Country Club",
+        city: "Pacific Palisades, California",
+        par: 71,
+        rating: 74.6,
+        slope: 135,
+        tees: "Back tees",
+        source: "Public course profile"
+      },
+      {
+        name: "Bellerive Country Club",
+        city: "Town and Country, Missouri",
+        par: 71,
+        rating: 76.3,
+        slope: 141,
+        tees: "Championship tees",
+        source: "Public course profile"
+      },
+      {
+        name: "Oakland Hills Country Club - South Course",
+        city: "Bloomfield Township, Michigan",
+        par: 72,
+        rating: 77.0,
+        slope: 145,
+        tees: "Championship tees",
+        source: "Public course profile"
+      },
+      {
+        name: "Oakland Hills Country Club - North Course",
+        city: "Bloomfield Township, Michigan",
+        par: 70,
+        rating: 74.6,
+        slope: 138,
+        tees: "Back tees",
+        source: "Public course profile"
+      },
+      {
+        name: "Oak Hills Country Club",
+        city: "San Antonio, Texas",
+        par: 71,
+        rating: 74.3,
+        slope: 142,
+        tees: "Championship tees",
+        source: "Public course profile"
+      },
+      {
+        name: "Warwick Hills Golf and Country Club",
+        city: "Grand Blanc Township, Michigan",
+        par: 72,
+        rating: 74.5,
+        slope: 136,
+        tees: "Black tees",
+        source: "Public course profile"
+      },
+      {
+        name: "Locust Hill Country Club",
+        city: "Pittsford, New York",
+        par: 72,
+        rating: 72.8,
+        slope: 138,
+        tees: "Back tees",
+        source: "Public course profile"
+      },
+      {
+        name: "Cherry Hills Country Club",
+        city: "Cherry Hills Village, Colorado",
+        par: 72,
+        rating: 74.7,
+        slope: 139,
+        tees: "Back tees",
+        source: "Public course profile"
+      }
+    ];
+
+    const MAX_BAYS = 5;
+    const BAY_COSTS = [3000, 10000, 50000, 150000];
+    const TARGET_COSTS = [1500, 4000, 9000, 18000, 36000, 72000, 140000, 260000, 500000];
+    const TARGET_CHANCES = [0.02, 0.04, 0.06, 0.08, 0.11, 0.14, 0.17, 0.19, 0.2, 0.2];
+    const CART_PAYOUT = 50;
+    const CART_MAX_LEVEL = 10;
+    const CART_UPGRADE_COSTS = [3000, 6000, 11000, 18000, 30000, 48000, 75000, 110000, 160000, 225000];
+    const BULLSEYE_REWARD = 2;
+    const BULLSEYE_MULTIPLIER_COSTS = [4000, 11000, 28000, 65000];
+    const BULLSEYE_MAX_MULTIPLIER = 5;
+
+    const upgrades = [
+      { id: "bays", name: "Hitting bays", icon: "BAY", status: "Adds one more customer bay. Max 5 bays." },
+      { id: "targets", name: "Range targets", icon: "PIN", status: "Raises bullseye odds." },
+      { id: "bullseyeMultiplier", name: "Bullseye payout", icon: "X", status: "Raises bullseye payouts up to 5x." },
+      { id: "cart", name: "Pickup cart", icon: "CAR", status: "Unlocks ball collection, then speeds up cart payouts. Real rounds are still the main way to earn." }
+    ];
+
+    const clubs = [
+      { id: "ruby", name: "Ruby Driver", color: "#d93c3c", cost: 100, income: 0.75 },
+      { id: "cobalt", name: "Cobalt Driver", color: "#2f66d0", cost: 250, income: 1.25 },
+      { id: "lime", name: "Lime Driver", color: "#71b943", cost: 500, income: 2 },
+      { id: "gold", name: "Gold Driver", color: "#d9a637", cost: 1000, income: 3 },
+      { id: "teal", name: "Teal Driver", color: "#2aa69a", cost: 2000, income: 4 },
+      { id: "violet", name: "Violet Driver", color: "#8051c9", cost: 3500, income: 5.25 },
+      { id: "orange", name: "Orange Driver", color: "#df7a2f", cost: 5000, income: 6.25 },
+      { id: "silver", name: "Silver Driver", color: "#9aa6ad", cost: 7500, income: 8.5 },
+      { id: "midnight", name: "Midnight Driver", color: "#111827", cost: 10000, income: 10 },
+      { id: "diamond", name: "Diamond Driver", color: "#6ee7f9", realPrice: "$4.99", income: 50 }
+    ];
+
+    const cosmeticItems = [
+      {
+        id: "classic",
+        name: "Classic Range",
+        type: "theme",
+        cost: 0,
+        description: "Clean daytime grass and standard hitting mats.",
+        preview: { sky: "#acd4dd", grass: "#79b867", accent: "#4a9850" },
+        vars: {
+          "--sky-top": "#acd4dd",
+          "--grass-main": "#79b867",
+          "--fairway-start": "#8bcc70",
+          "--fairway-end": "#4a9850",
+          "--hill-one": "#3f8c55",
+          "--hill-two": "#61a85e",
+          "--hill-three": "#367f50",
+          "--mat-top": "#efe4bf",
+          "--mat-base": "#58785d"
+        }
+      },
+      {
+        id: "twilight",
+        name: "Twilight Theme",
+        type: "theme",
+        cost: 1200,
+        description: "Evening sky, deeper grass, and darker range mats.",
+        preview: { sky: "#91a8c8", grass: "#5f9365", accent: "#2f6d4d" },
+        vars: {
+          "--sky-top": "#91a8c8",
+          "--grass-main": "#5f9365",
+          "--fairway-start": "#78a85f",
+          "--fairway-end": "#2f6d4d",
+          "--hill-one": "#315f4b",
+          "--hill-two": "#4f8158",
+          "--hill-three": "#244f42",
+          "--mat-top": "#cbbf8b",
+          "--mat-base": "#3e6658"
+        }
+      },
+      {
+        id: "coastal",
+        name: "Coastal Theme",
+        type: "theme",
+        cost: 2500,
+        description: "Bright ocean air, blue-green turf, and clean mats.",
+        preview: { sky: "#9dd6e5", grass: "#6fbf8a", accent: "#3b9182" },
+        vars: {
+          "--sky-top": "#9dd6e5",
+          "--grass-main": "#6fbf8a",
+          "--fairway-start": "#8dd89d",
+          "--fairway-end": "#3b9182",
+          "--hill-one": "#3b8f74",
+          "--hill-two": "#63b779",
+          "--hill-three": "#2e7568",
+          "--mat-top": "#e9eccf",
+          "--mat-base": "#4f7871"
+        }
+      },
+      {
+        id: "night",
+        name: "Night Range",
+        type: "theme",
+        realPrice: "$0.99",
+        description: "Turns the range into a darker night session.",
+        preview: { sky: "#1f2f4d", grass: "#406545", accent: "#243f35" },
+        vars: {
+          "--sky-top": "#1f2f4d",
+          "--grass-main": "#406545",
+          "--fairway-start": "#5d8351",
+          "--fairway-end": "#243f35",
+          "--hill-one": "#233d34",
+          "--hill-two": "#365a3e",
+          "--hill-three": "#1b332c",
+          "--mat-top": "#9f986d",
+          "--mat-base": "#2f4d43"
+        }
+      },
+      {
+        id: "disco",
+        name: "Disco Range",
+        type: "theme",
+        realPrice: "$0.99",
+        description: "A premium neon range with bold party colors.",
+        preview: { sky: "#43206f", grass: "#247a68", accent: "#d946ef" },
+        vars: {
+          "--sky-top": "#43206f",
+          "--grass-main": "#247a68",
+          "--fairway-start": "#22c7a9",
+          "--fairway-end": "#274690",
+          "--hill-one": "#30205f",
+          "--hill-two": "#1b8d7d",
+          "--hill-three": "#551a8b",
+          "--mat-top": "#f0d75f",
+          "--mat-base": "#4b2e83"
+        }
+      },
+      { id: "flowers", name: "Scattered Flowers", type: "decor", realPrice: "$0.99", description: "Adds scattered single flowers around the range.", preview: { accent: "#f472b6", extra: "#facc15" } },
+      { id: "lights", name: "String Lights", type: "decor", realPrice: "$0.99", description: "Adds lights behind the hitting bays.", preview: { accent: "#fff5a8", extra: "#b7f7ff" } },
+      { id: "fountain", name: "Lake Feature", type: "decor", realPrice: "$0.99", description: "Adds a lake between the range targets.", preview: { accent: "#79c8da", extra: "#5b9eab" } }
+    ];
+
+    const friendTycoons = [
+      { name: "Avery", score: 42000, level: 16, handicap: "9.8" },
+      { name: "Jordan", score: 27500, level: 12, handicap: "14.1" },
+      { name: "Mia", score: 18800, level: 9, handicap: "18.6" },
+      { name: "Leo", score: 9300, level: 6, handicap: "22.4" }
+    ];
+
+    let state = loadState();
+    let selectedCourse = null;
+    let bayCustomers = new Map([[0, 10]]);
+    let bayNextShotAt = new Map([[0, Date.now() + 1600]]);
+    let cartPosition = null;
+    let cartDirection = 1;
+    let cartSweepLane = 0;
+    let renderedBayCount = 0;
+    let scorecardStream = null;
+    let currentScorecardImage = "";
+
+    const els = {
+      points: document.querySelector("#points"),
+      income: document.querySelector("#income"),
+      level: document.querySelector("#level"),
+      roundCount: document.querySelector("#roundCount"),
+      rounds: document.querySelector("#rounds"),
+      clubs: document.querySelector("#clubs"),
+      shopItems: document.querySelector("#shopItems"),
+      leaderboard: document.querySelector("#leaderboard"),
+      handicapCard: document.querySelector("#handicapCard"),
+      progressList: document.querySelector("#progressList"),
+      quickUpgrades: document.querySelector("#quickUpgrades"),
+      form: document.querySelector("#roundForm"),
+      courseForm: document.querySelector("#courseForm"),
+      courseAddPanel: document.querySelector("#courseAddPanel"),
+      showCourseFormBtn: document.querySelector("#showCourseFormBtn"),
+      cancelCourseFormBtn: document.querySelector("#cancelCourseFormBtn"),
+      toast: document.querySelector("#toast"),
+      stallRow: document.querySelector("#stallRow"),
+      ballLayer: document.querySelector("#ballLayer"),
+      rangeDecor: document.querySelector("#rangeDecor"),
+      rangeName: document.querySelector("#rangeName"),
+      rangeStatus: document.querySelector("#rangeStatus"),
+      course: document.querySelector("#course"),
+      holeCount: document.querySelector("#holeCount"),
+      score: document.querySelector("#score"),
+      scorecardPreview: document.querySelector("#scorecardPreview"),
+      scorecardCamera: document.querySelector("#scorecardCamera"),
+      scorecardCanvas: document.querySelector("#scorecardCanvas"),
+      scorecardPrompt: document.querySelector("#scorecardPrompt"),
+      scanScorecardBtn: document.querySelector("#scanScorecardBtn"),
+      photoLibraryBtn: document.querySelector("#photoLibraryBtn"),
+      scorecardPhoto: document.querySelector("#scorecardPhoto"),
+      scoreScanResult: document.querySelector("#scoreScanResult"),
+      holeEntryPanel: document.querySelector("#holeEntryPanel"),
+      holeEntrySubtitle: document.querySelector("#holeEntrySubtitle"),
+      holeScores: document.querySelector("#holeScores"),
+      holeTotal: document.querySelector("#holeTotal"),
+      submitHoleScoresBtn: document.querySelector("#submitHoleScoresBtn"),
+      closeHoleScoresBtn: document.querySelector("#closeHoleScoresBtn"),
+      par: document.querySelector("#par"),
+      rating: document.querySelector("#rating"),
+      slope: document.querySelector("#slope"),
+      courseResults: document.querySelector("#courseResults"),
+      courseSource: document.querySelector("#courseSource"),
+      startupScreen: document.querySelector("#startupScreen"),
+      loadingPanel: document.querySelector("#loadingPanel"),
+      loginPanel: document.querySelector("#loginPanel"),
+      tutorialOverlay: document.querySelector("#tutorialOverlay"),
+      tutorialCard: document.querySelector("#tutorialCard"),
+      appleLoginBtn: document.querySelector("#appleLoginBtn"),
+      guestLoginBtn: document.querySelector("#guestLoginBtn"),
+      testPointsBtn: document.querySelector("#testPointsBtn"),
+      resetBtn: document.querySelector("#resetBtn")
+    };
+
+    function showView(view) {
+      document.querySelector(".app").dataset.currentView = view;
+      document.querySelectorAll(".page").forEach((page) => {
+        page.classList.toggle("active", page.id === `${view}Page`);
+      });
+      document.querySelectorAll("[data-view]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.view === view);
+      });
+      document.querySelector(".app").scrollTop = 0;
+    }
+
+    function loadState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        return normalizeState(JSON.parse(saved));
+      }
+
+      return createInitialState();
+    }
+
+    function createInitialState() {
+      return normalizeState({
+        points: 0,
+        rounds: [],
+        upgrades: {
+          bays: 1,
+          targets: 0,
+          bullseyeMultiplier: 1,
+          cart: 0
+        },
+        clubs: {
+          owned: [],
+          equipped: null
+        },
+        cosmetics: {
+          owned: ["classic"],
+          equippedTheme: "classic",
+          equippedDecor: []
+        },
+        customCourses: [],
+        account: null,
+        rangeTitle: "",
+        tutorialComplete: false,
+        pendingIncome: 0,
+        cartTimerSeconds: 0,
+        lastTick: Date.now()
+      });
+    }
+
+    function normalizeState(rawState) {
+      const rawUpgrades = rawState.upgrades || {};
+      const oldBayValue = Number(rawUpgrades.bays || 0);
+      const bays = Math.max(1, Math.min(MAX_BAYS, oldBayValue || 1));
+      return {
+        ...rawState,
+        points: Number(rawState.points || 0),
+        rounds: Array.isArray(rawState.rounds) ? rawState.rounds : [],
+        upgrades: {
+          bays,
+          targets: Math.max(0, Math.min(10, Number(rawUpgrades.targets || 0))),
+          bullseyeMultiplier: Math.max(1, Math.min(BULLSEYE_MAX_MULTIPLIER, Number(rawUpgrades.bullseyeMultiplier || 1))),
+          cart: Math.max(0, Math.min(CART_MAX_LEVEL, Number(rawUpgrades.cart || 0)))
+        },
+        clubs: {
+          owned: Array.isArray(rawState.clubs?.owned) ? rawState.clubs.owned : [],
+          equipped: rawState.clubs?.equipped || null
+        },
+        cosmetics: {
+          owned: Array.isArray(rawState.cosmetics?.owned)
+            ? Array.from(new Set(["classic", ...rawState.cosmetics.owned]))
+            : ["classic"],
+          equippedTheme: rawState.cosmetics?.equippedTheme || "classic",
+          equippedDecor: Array.isArray(rawState.cosmetics?.equippedDecor) ? rawState.cosmetics.equippedDecor : []
+        },
+        customCourses: Array.isArray(rawState.customCourses)
+          ? rawState.customCourses.map(normalizeCustomCourse).filter(Boolean)
+          : [],
+        account: rawState.account && rawState.account.loggedIn
+          ? {
+              loggedIn: true,
+              method: rawState.account.method || "email",
+              email: rawState.account.email || "",
+              createdAt: rawState.account.createdAt || new Date().toISOString()
+            }
+          : null,
+        rangeTitle: String(rawState.rangeTitle || "").trim(),
+        tutorialComplete: Boolean(rawState.tutorialComplete),
+        pendingIncome: Number(rawState.pendingIncome || 0),
+        cartTimerSeconds: Number(rawState.cartTimerSeconds || 0),
+        lastTick: Number(rawState.lastTick || Date.now())
+      };
+    }
+
+    function normalizeCustomCourse(course) {
+      const name = String(course?.name || "").trim();
+      const city = String(course?.city || "Florida").trim();
+      const par = Number(course?.par);
+      const rating = Number(course?.rating);
+      const slope = Number(course?.slope);
+      if (!name || !par || !rating || !slope) {
+        return null;
+      }
+      return {
+        name,
+        city,
+        par,
+        rating,
+        slope,
+        tees: String(course?.tees || "Player entered tees").trim(),
+        source: "player-added course"
+      };
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function resetGame() {
+      localStorage.removeItem(STORAGE_KEY);
+      stopScorecardCamera();
+      state = createInitialState();
+      selectedCourse = null;
+      bayCustomers = new Map([[0, 10]]);
+      bayNextShotAt = new Map([[0, Date.now() + 1600]]);
+      cartPosition = null;
+      cartDirection = 1;
+      cartSweepLane = 0;
+      renderedBayCount = 0;
+      document.documentElement.style.setProperty("--driver-color", "#101614");
+      document.querySelectorAll(".landed-ball, .flying-ball").forEach((ball) => ball.remove());
+      saveState();
+      render();
+      updateCustomers(true);
+      showView("tycoon");
+      showStartupFlow(true);
+      showToast("Progress reset");
+    }
+
+    function showStartupFlow(forceLogin = false) {
+      els.startupScreen.classList.remove("hidden");
+      els.loadingPanel.hidden = false;
+      els.loginPanel.hidden = true;
+
+      window.setTimeout(() => {
+        if (state.account?.loggedIn && !forceLogin) {
+          els.startupScreen.classList.add("hidden");
+          return;
+        }
+
+        els.loadingPanel.hidden = true;
+        els.loginPanel.hidden = false;
+      }, 900);
+    }
+
+    function completeLogin(method, email = "") {
+      const shouldStartTutorial = method === "guest" && !state.tutorialComplete && !state.account?.loggedIn;
+      state.account = {
+        loggedIn: true,
+        method,
+        email,
+        createdAt: new Date().toISOString()
+      };
+      saveState();
+      els.startupScreen.classList.add("hidden");
+      showToast("Signed in");
+      if (shouldStartTutorial) {
+        startTutorial();
+      }
+    }
+
+    const tutorialSteps = [
+      {
+        view: "tycoon",
+        title: "This is your range",
+        body: "Customers hit balls from your bays. The Per sec stat is your online and offline range income. Your biggest rewards still come from posting real golf rounds.",
+        target: ".range-badge",
+        arrow: "up"
+      },
+      {
+        view: "tycoon",
+        title: "Quick upgrades",
+        body: "These buttons upgrade hitting bays, target chance, bullseye payout, and the pickup cart. Bays add income, targets raise bullseye odds, bullseye payout raises the reward, and cart upgrades make timed cart payouts faster.",
+        target: ".quick-upgrades",
+        arrow: "down"
+      },
+      {
+        view: "clubs",
+        title: "Clubs",
+        body: "Buy and equip driver colors here. Clubs now provide stronger background income and change the driver color your customers swing.",
+        target: "[data-view='clubs']",
+        arrow: "up"
+      },
+      {
+        view: "shop",
+        title: "Shop",
+        body: "Spend points on cosmetic themes and decorations like scattered flowers, lights, and a lake. These style your range and do not replace real-round rewards.",
+        target: "[data-view='shop']",
+        arrow: "up"
+      },
+      {
+        view: "rounds",
+        title: "Rounds and handicap",
+        body: "Your posted rounds appear here. A handicap starts after 5 rated rounds, and each day only one score can be submitted.",
+        target: "[data-view='rounds']",
+        arrow: "up"
+      },
+      {
+        view: "leaderboard",
+        title: "Leaderboard",
+        body: "Compare your tycoon score against friends. Your score uses points, upgrades, rounds, handicap progress, cosmetics, and income.",
+        target: "[data-view='leaderboard']",
+        arrow: "up"
+      },
+      {
+        view: "score",
+        title: "Post real rounds",
+        body: "Use the Score page after playing golf. Pick your course, save a scorecard photo, enter each hole score, and earn the biggest point rewards in the game.",
+        target: "[data-view='score']",
+        arrow: "up"
+      }
+    ];
+
+    let tutorialIndex = 0;
+
+    function startTutorial() {
+      tutorialIndex = -1;
+      showView("tycoon");
+      scrollAppToTop();
+      showRangeNamePrompt();
+    }
+
+    function scrollAppToTop() {
+      const app = document.querySelector(".app");
+      if (app) {
+        app.scrollTo({ top: 0, behavior: "smooth" });
+      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function showRangeNamePrompt() {
+      els.tutorialOverlay.hidden = false;
+      positionTutorialCard();
+      els.tutorialCard.innerHTML = `
+        <h2>Name your golf range</h2>
+        <p>This name will show at the top of your tycoon range.</p>
+        <form class="login-form" id="rangeNameForm">
+          <input id="rangeTitleInput" name="rangeTitle" autocomplete="off" maxlength="28" placeholder="Chase's Golf Range" required>
+          <button class="btn" type="submit">Start tutorial</button>
+        </form>
+      `;
+      document.querySelector("#rangeNameForm").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const data = new FormData(event.currentTarget);
+        state.rangeTitle = String(data.get("rangeTitle") || "Starter Range").trim() || "Starter Range";
+        saveState();
+        render();
+        showNextTutorialStep();
+      }, { once: true });
+      document.querySelector("#rangeTitleInput").focus();
+    }
+
+    function positionTutorialCard(targetSelector = null, arrow = "up") {
+      const appBox = document.querySelector(".app").getBoundingClientRect();
+      const target = targetSelector ? document.querySelector(targetSelector) : null;
+      let left = appBox.left + 24;
+      let top = appBox.top + 180;
+
+      if (target) {
+        const targetBox = target.getBoundingClientRect();
+        if (arrow === "down") {
+          left = targetBox.left + targetBox.width / 2 - 172;
+          top = Math.max(appBox.top + 18, targetBox.top - 164);
+        } else if (arrow === "up") {
+          left = targetBox.left + targetBox.width / 2 - 172;
+          top = Math.min(appBox.bottom - 210, targetBox.bottom + 22);
+        } else if (arrow === "left") {
+          left = targetBox.right + 18;
+          top = targetBox.top + targetBox.height / 2 - 90;
+        } else if (arrow === "right") {
+          left = targetBox.left - 360;
+          top = targetBox.top + targetBox.height / 2 - 90;
+        }
+      }
+
+      left = Math.max(appBox.left + 14, Math.min(left, appBox.right - 359));
+      top = Math.max(appBox.top + 14, Math.min(top, appBox.bottom - 225));
+      els.tutorialCard.className = `tutorial-card arrow-${arrow}`;
+      els.tutorialCard.style.setProperty("--tutorial-left", `${left}px`);
+      els.tutorialCard.style.setProperty("--tutorial-top", `${top}px`);
+
+      if (target) {
+        const targetBox = target.getBoundingClientRect();
+        const arrowLeft = Math.max(28, Math.min(316, targetBox.left + targetBox.width / 2 - left));
+        const arrowTop = Math.max(24, Math.min(174, targetBox.top + targetBox.height / 2 - top));
+        els.tutorialCard.style.setProperty("--arrow-left", `${arrowLeft}px`);
+        els.tutorialCard.style.setProperty("--arrow-top", `${arrowTop}px`);
+      }
+    }
+
+    function showNextTutorialStep() {
+      tutorialIndex += 1;
+      if (tutorialIndex >= tutorialSteps.length) {
+        state.tutorialComplete = true;
+        saveState();
+        els.tutorialOverlay.hidden = true;
+        showView("tycoon");
+        showToast("Tutorial complete");
+        return;
+      }
+
+      const step = tutorialSteps[tutorialIndex];
+      showView(step.view);
+      scrollAppToTop();
+      els.tutorialOverlay.hidden = false;
+      window.setTimeout(() => {
+        positionTutorialCard(step.target, step.arrow);
+        els.tutorialCard.innerHTML = `
+          <h2>${escapeHtml(step.title)}</h2>
+          <p>${escapeHtml(step.body)}</p>
+          <p class="hint">Tap anywhere to continue</p>
+        `;
+      }, 120);
+    }
+
+    function calculateLevel() {
+      return state.upgrades.bays + state.upgrades.targets + state.upgrades.cart + (state.upgrades.bullseyeMultiplier - 1);
+    }
+
+    function bullseyeMultiplier() {
+      return Math.max(1, Math.min(BULLSEYE_MAX_MULTIPLIER, state.upgrades.bullseyeMultiplier || 1));
+    }
+
+    function bullseyeReward() {
+      return BULLSEYE_REWARD * bullseyeMultiplier();
+    }
+
+    function cartLevel() {
+      return Math.max(0, Math.min(CART_MAX_LEVEL, state.upgrades.cart || 0));
+    }
+
+    function cartPayoutInterval() {
+      return cartPayoutIntervalForLevel(cartLevel());
+    }
+
+    function cartPayoutIntervalForLevel(level) {
+      if (!level) {
+        return 0;
+      }
+      const step = 20 / (CART_MAX_LEVEL - 1);
+      return Math.max(10, Math.round(30 - (level - 1) * step));
+    }
+
+    function cartPointsPerSecond() {
+      const interval = cartPayoutInterval();
+      return interval ? CART_PAYOUT / interval : 0;
+    }
+
+    function tycoonScore() {
+      const cosmeticScore = state.cosmetics.owned.length * 350;
+      const handicap = handicapIndex();
+      const handicapBonus = Number.isFinite(handicap.value) ? Math.max(0, Math.round((30 - handicap.value) * 120)) : 0;
+      return Math.floor(state.points + calculateLevel() * 900 + displayedProfitPerSecond() * 650 + state.rounds.length * 250 + cosmeticScore + handicapBonus);
+    }
+
+    function handicapIndex() {
+      const differentials = state.rounds
+        .map((round) => Number(round.differential))
+        .filter((value) => Number.isFinite(value))
+        .sort((a, b) => a - b);
+
+      if (differentials.length < 5) {
+        const remaining = 5 - differentials.length;
+        return {
+          label: "--",
+          value: NaN,
+          detail: `Handicap develops after 5 rated rounds. Add ${remaining} more round${remaining === 1 ? "" : "s"}.`
+        };
+      }
+
+      const usedCount = differentials.length >= 20 ? 8 : Math.max(1, Math.ceil(differentials.length * 0.4));
+      const used = differentials.slice(0, usedCount);
+      const value = Math.max(0, used.reduce((sum, item) => sum + item, 0) / used.length);
+      return {
+        label: value.toFixed(1),
+        value,
+        detail: `Using best ${usedCount} of ${differentials.length} saved round${differentials.length === 1 ? "" : "s"}.`
+      };
+    }
+
+    function progressPercent(current, target) {
+      if (!target) {
+        return 100;
+      }
+      return Math.max(0, Math.min(100, (current / target) * 100));
+    }
+
+    function renderProgressCards() {
+      const level = calculateLevel();
+      const maxLevel = MAX_BAYS + TARGET_COSTS.length + CART_MAX_LEVEL + (BULLSEYE_MAX_MULTIPLIER - 1);
+      const nextBayCost = BAY_COSTS[state.upgrades.bays - 1] || null;
+      const nextTargetCost = TARGET_COSTS[state.upgrades.targets] || null;
+      const cards = [
+        {
+          title: `Tycoon Level ${level}`,
+          detail: `${state.upgrades.bays}/${MAX_BAYS} bays, ${Math.round(targetHitChance() * 100)}% bullseye odds, ${bullseyeMultiplier()}x bullseye payout, ${state.upgrades.cart ? `cart every ${cartPayoutInterval()}s` : "cart locked"}.`,
+          value: level,
+          max: maxLevel,
+          badge: `${Math.round(progressPercent(level, maxLevel))}%`
+        },
+        {
+          title: nextBayCost ? "Next Hitting Bay" : "Hitting Bays Maxed",
+          detail: nextBayCost ? `${Math.floor(state.points).toLocaleString()} / ${nextBayCost.toLocaleString()} points` : `All ${MAX_BAYS} hitting bays are open.`,
+          value: nextBayCost ? state.points : 1,
+          max: nextBayCost || 1,
+          badge: `${state.upgrades.bays}/${MAX_BAYS}`
+        },
+        {
+          title: nextTargetCost ? "Next Target Upgrade" : "Targets Maxed",
+          detail: nextTargetCost ? `${Math.floor(state.points).toLocaleString()} / ${nextTargetCost.toLocaleString()} points` : "Bullseye odds are fully upgraded.",
+          value: nextTargetCost ? state.points : 1,
+          max: nextTargetCost || 1,
+          badge: `${Math.round(targetHitChance() * 100)}%`
+        }
+      ];
+
+      els.progressList.innerHTML = cards.map((card) => `
+        <article class="progress-card">
+          <div class="progress-row">
+            <div>
+              <h3>${escapeHtml(card.title)}</h3>
+              <p>${escapeHtml(card.detail)}</p>
+            </div>
+            <div class="level-pill">${escapeHtml(card.badge)}</div>
+          </div>
+          <div class="progress-track" aria-hidden="true">
+            <div class="progress-fill" style="--progress: ${progressPercent(card.value, card.max)}%"></div>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function upgradeCost(upgrade) {
+      if (upgrade.id === "bays") {
+        return BAY_COSTS[state.upgrades.bays - 1] || null;
+      }
+      if (upgrade.id === "targets") {
+        return TARGET_COSTS[state.upgrades.targets] || null;
+      }
+      if (upgrade.id === "bullseyeMultiplier") {
+        return BULLSEYE_MULTIPLIER_COSTS[state.upgrades.bullseyeMultiplier - 1] || null;
+      }
+      if (upgrade.id === "cart") {
+        return CART_UPGRADE_COSTS[state.upgrades.cart] || null;
+      }
+      return null;
+    }
+
+    function roundPoints(score, par, rating, slope) {
+      const differential = ((score - rating) * 113) / slope;
+      const parScore = score - par;
+      const performance = Math.max(0, 120 - differential * 4.2);
+      const difficultyBonus = Math.max(0, rating - par + (slope - 113) / 8);
+      const scoreBonus = Math.max(0, 24 - parScore) * 4;
+      const participationBonus = 10000;
+      return Math.max(10000, Math.round((participationBonus + performance * 95 + difficultyBonus * 420 + scoreBonus * 80) / 25) * 25);
+    }
+
+    function localDateKey(date = new Date()) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function findLocalCourseMatches(query) {
+      const search = query.trim().toLowerCase();
+      if (search.length < 2) {
+        return [];
+      }
+
+      return [...courseDatabase, ...state.customCourses]
+        .filter((course) => {
+          const searchable = `${course.name} ${course.city}`.toLowerCase();
+          return searchable.includes(search);
+        })
+        .slice(0, 6)
+        .map((course) => ({ ...course, kind: course.source === "player-added course" ? "custom" : "rated" }));
+    }
+
+    function estimateCourseDifficulty(name, city) {
+      const label = `${name} ${city}`.toLowerCase();
+      let hash = 0;
+      for (let index = 0; index < label.length; index += 1) {
+        hash = ((hash << 5) - hash + label.charCodeAt(index)) | 0;
+      }
+
+      const cleanHash = Math.abs(hash);
+      let par = 72;
+      if (label.includes("par 3") || label.includes("short course")) {
+        par = 54;
+      } else if (label.includes("executive")) {
+        par = 60;
+      } else if (label.includes("nine") || label.includes("9 hole")) {
+        par = 36;
+      }
+
+      let slopeBase = 116 + (cleanHash % 23);
+      let ratingOffset = ((cleanHash >> 3) % 26) / 10;
+
+      if (label.includes("country club") || label.includes("resort") || label.includes("championship")) {
+        slopeBase += 7;
+        ratingOffset += 1.1;
+      }
+
+      if (label.includes("municipal") || label.includes("executive") || label.includes("par 3")) {
+        slopeBase -= 8;
+        ratingOffset -= 1.2;
+      }
+
+      const slope = Math.max(95, Math.min(148, slopeBase));
+      const rating = Math.max(par - 4, Math.min(par + 5.8, Number((par - 1.6 + ratingOffset).toFixed(1))));
+
+      return {
+        par,
+        rating,
+        slope,
+        tees: "Auto difficulty",
+        source: "app-estimated Florida course difficulty"
+      };
+    }
+
+    let searchTimer;
+    let searchRun = 0;
+
+    function renderCourseMatches() {
+      const query = els.course.value;
+      if (selectedCourse && query !== selectedCourse.name) {
+        selectedCourse = null;
+        els.par.value = "";
+        els.rating.value = "";
+        els.slope.value = "";
+        els.score.value = "";
+        els.courseSource.textContent = "Choose a course from the list to lock in automatic difficulty.";
+        updateScoreScanResult(false, "Choose your course first, then save a scorecard photo and enter each hole score manually.");
+        currentScorecardImage = "";
+        els.scorecardPreview.querySelector("img")?.remove();
+        els.holeEntryPanel.hidden = true;
+        els.holeScores.innerHTML = "";
+        els.holeTotal.textContent = "Total score: 0";
+        setScorecardPrompt("Tap scan and point the camera at the completed scorecard.");
+      }
+
+      const matches = findLocalCourseMatches(query);
+      renderCourseOptions(matches, query);
+
+      clearTimeout(searchTimer);
+      if (query.trim().length >= 3) {
+        searchTimer = setTimeout(() => searchFloridaCourses(query, matches), 250);
+      }
+    }
+
+    async function searchFloridaCourses(query, localMatches) {
+      const currentRun = ++searchRun;
+      const params = new URLSearchParams({
+        format: "jsonv2",
+        limit: "20",
+        countrycodes: "us",
+        viewbox: "-87.8,31.1,-79.7,24.3",
+        bounded: "1",
+        q: `${query} golf course Florida`
+      });
+
+      try {
+        const response = await fetch(`${FLORIDA_SEARCH_URL}?${params.toString()}`, {
+          headers: { "Accept": "application/json" }
+        });
+        if (!response.ok) {
+          return;
+        }
+
+        const results = await response.json();
+        if (currentRun !== searchRun) {
+          return;
+        }
+
+        const onlineMatches = results
+          .filter((item) => item.name || item.display_name)
+          .map((item) => {
+            const name = item.name || item.display_name.split(",")[0];
+            const city = formatFloridaLocation(item.display_name);
+            const difficulty = estimateCourseDifficulty(name, city);
+            return {
+              kind: "estimated",
+              name,
+              city,
+              par: difficulty.par,
+              rating: difficulty.rating,
+              slope: difficulty.slope,
+              tees: difficulty.tees,
+              source: difficulty.source
+            };
+          })
+          .filter((course, index, list) => {
+            const key = course.name.toLowerCase();
+            return list.findIndex((item) => item.name.toLowerCase() === key) === index;
+          });
+
+        const localKeys = new Set(localMatches.map((course) => course.name.toLowerCase()));
+        const combined = [
+          ...localMatches,
+          ...onlineMatches.filter((course) => !localKeys.has(course.name.toLowerCase()))
+        ].slice(0, 8);
+
+        renderCourseOptions(combined, query);
+      } catch (error) {
+        els.courseSource.textContent = "Online Florida search is unavailable right now. Saved courses still work.";
+      }
+    }
+
+    function formatFloridaLocation(displayName) {
+      const parts = displayName.split(",").map((part) => part.trim()).filter(Boolean);
+      const floridaIndex = parts.findIndex((part) => part === "Florida");
+      if (floridaIndex > 0) {
+        return `${parts[Math.max(0, floridaIndex - 1)]}, Florida`;
+      }
+      return parts.slice(1, 3).join(", ") || "Florida";
+    }
+
+    function renderCourseOptions(matches, query) {
+      if (query.trim().length >= 3 && !matches.length) {
+        els.courseSource.textContent = "Searching Florida courses...";
+      }
+
+      if (!matches.length) {
+        els.courseResults.classList.remove("show");
+        els.courseResults.innerHTML = "";
+        return;
+      }
+
+      els.courseResults.innerHTML = matches.map((course, index) => `
+        <button class="course-option" type="button" data-match-index="${index}" role="option">
+          <strong>${escapeHtml(course.name)}</strong>
+          <span>${escapeHtml(course.city)} - ${escapeHtml(course.tees)} - Par ${course.par}, Rating ${course.rating}, Slope ${course.slope}</span>
+        </button>
+      `).join("");
+      els.courseResults.classList.add("show");
+
+      document.querySelectorAll("[data-match-index]").forEach((button) => {
+        button.addEventListener("click", () => selectCourse(matches[Number(button.dataset.matchIndex)]));
+      });
+    }
+
+    function selectCourse(course) {
+      if (!course) {
+        return;
+      }
+
+      els.course.value = course.name;
+      selectedCourse = course;
+      els.par.value = course.par;
+      els.rating.value = course.rating;
+      els.slope.value = course.slope;
+      els.courseSource.textContent = `${course.city}: ${course.tees} from ${course.source}`;
+      els.courseResults.classList.remove("show");
+      els.courseResults.innerHTML = "";
+      showToast("Course difficulty locked in");
+    }
+
+    function addCustomCourse(event) {
+      event.preventDefault();
+      const data = new FormData(els.courseForm);
+      const course = normalizeCustomCourse({
+        name: data.get("name"),
+        city: data.get("city"),
+        par: data.get("par"),
+        rating: data.get("rating"),
+        slope: data.get("slope"),
+        tees: data.get("tees")
+      });
+
+      if (!course) {
+        showToast("Add the course par, rating, and slope.");
+        return;
+      }
+
+      const existingIndex = state.customCourses.findIndex((item) => item.name.toLowerCase() === course.name.toLowerCase());
+      if (existingIndex >= 0) {
+        state.customCourses[existingIndex] = course;
+      } else {
+        state.customCourses.push(course);
+      }
+
+      saveState();
+      els.courseForm.reset();
+      els.courseAddPanel.hidden = true;
+      selectCourse(course);
+      showToast("Course saved and selected");
+    }
+
+    function updateScoreScanResult(saved, detail) {
+      els.scoreScanResult.innerHTML = `
+        <strong>${saved ? "Scorecard saved" : "No scorecard saved"}</strong>
+        <span>${escapeHtml(detail)}</span>
+      `;
+    }
+
+    function setScorecardPrompt(message) {
+      els.scorecardPrompt.textContent = message;
+      els.scorecardPrompt.hidden = false;
+      els.scorecardCamera.hidden = true;
+    }
+
+    function stopScorecardCamera() {
+      if (scorecardStream) {
+        scorecardStream.getTracks().forEach((track) => track.stop());
+      }
+      scorecardStream = null;
+      els.scorecardCamera.srcObject = null;
+      els.scanScorecardBtn.textContent = "Scan scorecard";
+    }
+
+    async function startScorecardCamera() {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        updateScoreScanResult(null, "Camera scanning is not available in this browser.");
+        showToast("Camera not available.");
+        return false;
+      }
+
+      try {
+        scorecardStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: "environment" } },
+          audio: false
+        });
+        els.scorecardCamera.srcObject = scorecardStream;
+        els.scorecardCamera.hidden = false;
+        els.scorecardPrompt.hidden = true;
+        await els.scorecardCamera.play();
+        els.scanScorecardBtn.textContent = "Capture card";
+        updateScoreScanResult(false, "Hold the scorecard steady in front of the camera, then tap Capture card.");
+        return true;
+      } catch (error) {
+        updateScoreScanResult(null, "Camera permission was blocked or the camera could not open.");
+        showToast("Camera could not open.");
+        return false;
+      }
+    }
+
+    function captureScorecardFrame() {
+      const video = els.scorecardCamera;
+      const canvas = els.scorecardCanvas;
+      const width = video.videoWidth || 1280;
+      const height = video.videoHeight || 720;
+      const scale = Math.min(1, 900 / Math.max(width, height));
+      canvas.width = Math.round(width * scale);
+      canvas.height = Math.round(height * scale);
+      canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+      return canvas.toDataURL("image/jpeg", 0.86);
+    }
+
+    function scorecardFileToDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const image = new Image();
+        const url = URL.createObjectURL(file);
+        image.addEventListener("load", () => {
+          const canvas = els.scorecardCanvas;
+          const scale = Math.min(1, 900 / Math.max(image.naturalWidth, image.naturalHeight));
+          canvas.width = Math.round(image.naturalWidth * scale);
+          canvas.height = Math.round(image.naturalHeight * scale);
+          canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+          URL.revokeObjectURL(url);
+          resolve(canvas.toDataURL("image/jpeg", 0.86));
+        }, { once: true });
+        image.addEventListener("error", () => {
+          URL.revokeObjectURL(url);
+          reject(new Error("Image failed to load"));
+        }, { once: true });
+        image.src = url;
+      });
+    }
+
+    function selectedHoleCount() {
+      return Number(els.holeCount.value || 18);
+    }
+
+    function renderHoleInputs() {
+      const holeCount = selectedHoleCount();
+      els.holeEntrySubtitle.textContent = `Enter your ${holeCount}-hole score from the saved scorecard photo.`;
+      els.holeScores.innerHTML = Array.from({ length: holeCount }, (_, index) => `
+        <label class="hole-cell">
+          ${index + 1}
+          <input name="holeScore" type="number" min="1" max="12" inputmode="numeric" required>
+        </label>
+      `).join("");
+      els.holeScores.querySelectorAll("input").forEach((input) => {
+        input.addEventListener("input", updateHoleTotal);
+      });
+      updateHoleTotal();
+    }
+
+    function holeScoresFromForm() {
+      return [...els.holeScores.querySelectorAll("input")]
+        .map((input) => Number(input.value))
+        .filter((score) => Number.isFinite(score));
+    }
+
+    function updateHoleTotal() {
+      const holeCount = selectedHoleCount();
+      const scores = holeScoresFromForm();
+      const total = scores.reduce((sum, score) => sum + score, 0);
+      els.score.value = scores.length === holeCount ? String(total) : "";
+      els.holeTotal.textContent = scores.length === holeCount
+        ? `Total score: ${total}`
+        : `Total score: ${total} (${scores.length}/${holeCount} holes)`;
+    }
+
+    function saveScorecardProof(dataUrl, sourceLabel) {
+      currentScorecardImage = dataUrl;
+      els.scorecardPreview.querySelector("img")?.remove();
+      els.scorecardCamera.hidden = true;
+      els.scorecardPrompt.hidden = true;
+      els.scorecardPreview.insertAdjacentHTML("beforeend", `<img src="${dataUrl}" alt="Saved scorecard photo">`);
+      renderHoleInputs();
+      els.holeEntryPanel.hidden = false;
+      updateScoreScanResult(true, `Scorecard photo saved from ${sourceLabel}. Enter each hole score below.`);
+      showToast("Scorecard photo saved");
+    }
+
+    function closeHoleScores() {
+      els.holeEntryPanel.hidden = true;
+    }
+
+    async function scanScorecard() {
+      if (!selectedCourse) {
+        showToast("Choose a course first.");
+        return;
+      }
+
+      if (!scorecardStream) {
+        await startScorecardCamera();
+        return;
+      }
+
+      els.scanScorecardBtn.disabled = true;
+      try {
+        const image = captureScorecardFrame();
+        stopScorecardCamera();
+        saveScorecardProof(image, "camera");
+      } catch (error) {
+        updateScoreScanResult(false, "The scorecard photo could not be saved. Try again.");
+        showToast("Capture failed.");
+      } finally {
+        els.scanScorecardBtn.disabled = false;
+      }
+    }
+
+    function openPhotoLibrary() {
+      if (!selectedCourse) {
+        showToast("Choose a course first.");
+        return;
+      }
+      stopScorecardCamera();
+      els.scorecardPhoto.value = "";
+      els.scorecardPhoto.click();
+    }
+
+    function scanPhotoLibraryScorecard() {
+      const file = els.scorecardPhoto.files?.[0];
+      if (!file) {
+        return;
+      }
+
+      els.photoLibraryBtn.disabled = true;
+      els.scanScorecardBtn.disabled = true;
+      scorecardFileToDataUrl(file).then((dataUrl) => {
+        saveScorecardProof(dataUrl, "photo library");
+        els.photoLibraryBtn.disabled = false;
+        els.scanScorecardBtn.disabled = false;
+      }).catch(() => {
+        updateScoreScanResult(false, "The photo could not be loaded. Try another image.");
+        els.photoLibraryBtn.disabled = false;
+        els.scanScorecardBtn.disabled = false;
+      });
+    }
+
+    function addRound(event) {
+      event.preventDefault();
+      const data = new FormData(els.form);
+      const course = String(data.get("course")).trim();
+      const holeCount = selectedHoleCount();
+      const holeScores = holeScoresFromForm();
+      const score = holeScores.length === holeCount ? holeScores.reduce((sum, value) => sum + value, 0) : 0;
+      const par = selectedCourse ? Number(selectedCourse.par) : 0;
+      const rating = selectedCourse ? Number(selectedCourse.rating) : 0;
+      const slope = selectedCourse ? Number(selectedCourse.slope) : 0;
+      const roundPar = holeCount === 9 ? Math.round(par / 2) : par;
+      const roundRating = holeCount === 9 ? Number((rating / 2).toFixed(1)) : rating;
+
+      if (!selectedCourse || course !== selectedCourse.name) {
+        showToast("Choose a course from the list first.");
+        return;
+      }
+
+      if (!currentScorecardImage) {
+        showToast("Save a scorecard photo first.");
+        return;
+      }
+
+      if (holeScores.length !== holeCount || holeScores.some((holeScore) => holeScore < 1 || holeScore > 12)) {
+        showToast(`Enter a score for all ${holeCount} holes.`);
+        return;
+      }
+
+      const minScore = holeCount === 9 ? 20 : 50;
+      const maxScore = holeCount === 9 ? 90 : 180;
+      if (!score || score < minScore || score > maxScore || !roundPar || !roundRating || !slope) {
+        showToast("Check the hole scores before submitting.");
+        return;
+      }
+
+      const todayKey = localDateKey();
+      const alreadyPostedToday = state.rounds.some((round) => round.roundDay === todayKey || round.date === new Date().toLocaleDateString());
+      if (alreadyPostedToday) {
+        showToast("You can only post one golf round per day.");
+        return;
+      }
+
+      const earned = roundPoints(score, roundPar, roundRating, slope);
+      const differential = (((score - roundRating) * 113) / slope).toFixed(1);
+
+      state.points += earned;
+      state.rounds.unshift({
+        id: crypto.randomUUID(),
+        course,
+        score,
+        par: roundPar,
+        rating: roundRating,
+        coursePar: par,
+        courseRating: rating,
+        slope,
+        difficultySource: selectedCourse.source,
+        holeCount,
+        holeScores,
+        scorecardImage: currentScorecardImage,
+        earned,
+        differential,
+        roundDay: todayKey,
+        date: new Date().toLocaleDateString()
+      });
+      state.rounds = state.rounds.slice(0, 12);
+
+      saveState();
+      render();
+      animatePointGain(earned, true);
+      showToast(`Round added: +${earned} points`);
+      els.form.reset();
+      selectedCourse = null;
+      currentScorecardImage = "";
+      stopScorecardCamera();
+      els.scorecardPreview.querySelector("img")?.remove();
+      els.holeEntryPanel.hidden = true;
+      els.holeScores.innerHTML = "";
+      els.holeTotal.textContent = "Total score: 0";
+      setScorecardPrompt("Tap scan and point the camera at the completed scorecard.");
+      updateScoreScanResult(false, "Choose your course first, then save a scorecard photo and enter each hole score manually.");
+      els.courseSource.textContent = "Choose a course from the list to lock in automatic difficulty.";
+      showView("tycoon");
+    }
+
+    function buyUpgrade(id) {
+      const upgrade = upgrades.find((item) => item.id === id);
+      const cost = upgradeCost(upgrade);
+      if (cost === null) {
+        showToast("This upgrade is maxed.");
+        return;
+      }
+      if (state.points < cost) {
+        showToast("Not enough points yet.");
+        return;
+      }
+
+      state.points -= cost;
+      if (id === "cart") {
+        state.upgrades.cart += 1;
+      } else if (id === "bullseyeMultiplier") {
+        state.upgrades.bullseyeMultiplier += 1;
+      } else {
+        state.upgrades[id] += 1;
+      }
+      saveState();
+      render();
+      showToast(`${upgrade.name} upgraded`);
+    }
+
+    function buyOrEquipClub(id) {
+      const club = clubs.find((item) => item.id === id);
+      if (!club) {
+        return;
+      }
+
+      if (state.clubs.owned.includes(id)) {
+        state.clubs.equipped = id;
+        saveState();
+        render();
+        showToast(`${club.name} equipped`);
+        return;
+      }
+
+      if (club.realPrice) {
+        showToast(`${club.name} is a ${club.realPrice} purchase. Checkout is not connected in this prototype.`);
+        return;
+      }
+
+      if (state.points < club.cost) {
+        showToast("Not enough points yet.");
+        return;
+      }
+
+      state.points -= club.cost;
+      state.clubs.owned.push(id);
+      state.clubs.equipped = id;
+      saveState();
+      render();
+      showToast(`${club.name} purchased`);
+    }
+
+    function buyOrEquipCosmetic(id) {
+      const item = cosmeticItems.find((cosmetic) => cosmetic.id === id);
+      if (!item) {
+        return;
+      }
+
+      const owned = state.cosmetics.owned.includes(id);
+      if (!owned) {
+        if (state.points < item.cost) {
+          showToast("Not enough points yet.");
+          return;
+        }
+        if (!item.realPrice) {
+          state.points -= item.cost;
+        }
+        state.cosmetics.owned.push(id);
+      }
+
+      if (item.type === "theme") {
+        state.cosmetics.equippedTheme = state.cosmetics.equippedTheme === id && id !== "classic" ? "classic" : id;
+      } else {
+        const equipped = new Set(state.cosmetics.equippedDecor);
+        if (equipped.has(id)) {
+          equipped.delete(id);
+        } else {
+          equipped.add(id);
+        }
+        state.cosmetics.equippedDecor = [...equipped];
+      }
+
+      saveState();
+      render();
+      const nowEquipped = item.type === "theme"
+        ? state.cosmetics.equippedTheme === id
+        : state.cosmetics.equippedDecor.includes(id);
+      showToast(nowEquipped ? `${item.name} turned on` : `${item.name} turned off`);
+    }
+
+    function applyCosmetics() {
+      const theme = cosmeticItems.find((item) => item.id === state.cosmetics.equippedTheme && item.type === "theme") || cosmeticItems[0];
+      Object.entries(theme.vars || {}).forEach(([key, value]) => {
+        document.documentElement.style.setProperty(key, value);
+      });
+
+      els.rangeDecor.innerHTML = state.cosmetics.equippedDecor
+        .filter((id) => state.cosmetics.owned.includes(id))
+        .map((id) => `<div class="decor ${id}"></div>`)
+        .join("");
+    }
+
+    let lastPointAnimation = 0;
+    function animatePointGain(amount, force = false) {
+      const now = Date.now();
+      if (!force && now - lastPointAnimation < 1800) {
+        return;
+      }
+      lastPointAnimation = now;
+
+      els.points.closest(".stat").classList.remove("pulse");
+      void els.points.closest(".stat").offsetWidth;
+      els.points.closest(".stat").classList.add("pulse");
+    }
+
+    function pointsPerSecond() {
+      const equippedClub = clubs.find((club) => club.id === state.clubs.equipped);
+      if (equippedClub?.id === "diamond") {
+        return state.upgrades.bays + equippedClub.income;
+      }
+      return Math.min(15, state.upgrades.bays + (equippedClub?.income || 0));
+    }
+
+    function estimatedCartPointsPerSecond() {
+      return cartPointsPerSecond();
+    }
+
+    function displayedProfitPerSecond() {
+      return pointsPerSecond() + estimatedCartPointsPerSecond();
+    }
+
+    function applyTycoonIncome(seconds, showMessage = false) {
+      state.pendingIncome = Number(state.pendingIncome || 0) + seconds * pointsPerSecond();
+      let earned = Math.floor(state.pendingIncome);
+      if (earned > 0) {
+        state.points += earned;
+        state.pendingIncome -= earned;
+      }
+
+      const interval = cartPayoutInterval();
+      if (interval) {
+        state.cartTimerSeconds = Number(state.cartTimerSeconds || 0) + seconds;
+        const cartPayouts = Math.floor(state.cartTimerSeconds / interval);
+        if (cartPayouts > 0) {
+          const cartEarned = cartPayouts * CART_PAYOUT;
+          state.points += cartEarned;
+          state.cartTimerSeconds -= cartPayouts * interval;
+          earned += cartEarned;
+        }
+      } else {
+        state.cartTimerSeconds = 0;
+      }
+
+      if (earned > 0) {
+        saveState();
+        animatePointGain(earned, showMessage);
+      }
+      render();
+      if (showMessage) {
+        showToast(`Range earned +${earned} points while you were away.`);
+      }
+      return earned;
+    }
+
+    function collectOfflineIncome() {
+      const now = Date.now();
+      const secondsAway = Math.floor((now - state.lastTick) / 1000);
+      if (secondsAway > 0) {
+        const cappedSeconds = Math.min(secondsAway, 60 * 60 * 8);
+        const earned = applyTycoonIncome(cappedSeconds);
+        if (earned > 0 && secondsAway >= 60) {
+          showToast(`Range earned +${earned} points while you were away.`);
+        }
+      }
+      state.lastTick = now;
+      saveState();
+    }
+
+    function onlineIncomeTick() {
+      applyTycoonIncome(1);
+      state.lastTick = Date.now();
+      saveState();
+    }
+
+    function launchRangeBalls() {
+      if (state.upgrades.bays <= 0) {
+        return;
+      }
+
+      const range = document.querySelector(".range").getBoundingClientRect();
+      const now = Date.now();
+      let stalls = [...document.querySelectorAll(".stall.occupied:not(.entering):not(.leaving)")]
+        .filter((stall) => now >= Number(bayNextShotAt.get(Number(stall.dataset.bay)) || 0));
+      if (!document.querySelectorAll(".stall.occupied:not(.entering):not(.leaving)").length) {
+        updateCustomers(true);
+        stalls = [...document.querySelectorAll(".stall.occupied:not(.entering):not(.leaving)")]
+          .filter((stall) => now >= Number(bayNextShotAt.get(Number(stall.dataset.bay)) || 0));
+      }
+      stalls.forEach((stall, index) => {
+        const bayIndex = Number(stall.dataset.bay);
+        bayNextShotAt.set(bayIndex, now + 5000);
+        setTimeout(() => launchBallFromStall(stall, range), Math.random() * 520 + index * 80);
+      });
+    }
+
+    function updateCustomers(forceOne = false) {
+      const bayCount = state.upgrades.bays;
+      for (let index = 0; index < bayCount; index += 1) {
+        if (!bayCustomers.has(index) && Math.random() < 0.34) {
+          startCustomerInBay(index);
+        }
+      }
+
+      if (forceOne && !bayCustomers.size && bayCount > 0) {
+        startCustomerInBay(Math.floor(Math.random() * bayCount));
+      }
+
+      document.querySelectorAll(".stall").forEach((stall, index) => {
+        if (bayCustomers.has(index) && !stall.classList.contains("leaving")) {
+          stall.classList.add("occupied");
+        } else if (!stall.classList.contains("leaving")) {
+          stall.classList.remove("occupied", "entering");
+        }
+      });
+    }
+
+    function startCustomerInBay(index) {
+      if (bayCustomers.has(index)) {
+        return;
+      }
+
+      bayCustomers.set(index, 10);
+      bayNextShotAt.set(index, Date.now() + 950 + Math.random() * 2600);
+      const stall = document.querySelector(`.stall[data-bay="${index}"]`);
+      if (!stall) {
+        return;
+      }
+
+      stall.classList.remove("leaving");
+      stall.classList.add("occupied", "entering");
+      setTimeout(() => stall.classList.remove("entering"), 720);
+    }
+
+    function targetHitChance() {
+      const targetLevel = state.upgrades.targets || 0;
+      return TARGET_CHANCES[Math.min(targetLevel, TARGET_CHANCES.length - 1)] || 0.02;
+    }
+
+    function chooseHitTarget() {
+      if (Math.random() > targetHitChance()) {
+        return null;
+      }
+
+      const targets = [...document.querySelectorAll(".target")];
+      return targets[Math.floor(Math.random() * targets.length)];
+    }
+
+    function chooseLandingSpot(range, hitTarget) {
+      const targets = [...document.querySelectorAll(".target")];
+      const target = hitTarget || targets[Math.floor(Math.random() * targets.length)];
+      const targetBox = target.getBoundingClientRect();
+      const baseX = targetBox.left - range.left + targetBox.width / 2;
+      const baseY = targetBox.top - range.top + targetBox.height / 2;
+
+      if (hitTarget) {
+        return { x: baseX, y: baseY };
+      }
+
+      const scatterX = (Math.random() - 0.5) * range.width * 0.16;
+      const scatterY = (Math.random() - 0.25) * range.height * 0.14;
+      const x = Math.max(range.width * 0.18, Math.min(range.width * 0.86, baseX + scatterX));
+      const y = Math.max(range.height * 0.36, Math.min(range.height * 0.63, baseY + scatterY));
+      return { x, y };
+    }
+
+    function launchBallFromStall(stall, range) {
+      const stallBox = stall.getBoundingClientRect();
+      const ball = document.createElement("div");
+      ball.className = "flying-ball";
+
+      const startX = stallBox.left - range.left + stallBox.width * 0.64;
+      const startY = stallBox.top - range.top + stallBox.height * 0.74;
+      const hitTarget = chooseHitTarget();
+      const landingSpot = chooseLandingSpot(range, hitTarget);
+      const targetX = landingSpot.x;
+      const targetY = landingSpot.y;
+      const endX = targetX - startX;
+      const endY = targetY - startY;
+      const flightTime = 1.4 + Math.random() * 0.65;
+      const shotPower = 0.75 + Math.random() * 0.65;
+
+      ball.style.setProperty("--start-x", `${startX}px`);
+      ball.style.setProperty("--start-y", `${startY}px`);
+      ball.style.setProperty("--end-x", `${endX}px`);
+      ball.style.setProperty("--end-y", `${endY}px`);
+      ball.style.setProperty("--arc", `${90 + Math.random() * 80}px`);
+      ball.style.setProperty("--flight-time", `${flightTime}s`);
+      ball.dataset.landX = String(targetX);
+      ball.dataset.landY = String(targetY);
+
+      stall.classList.add("active");
+      showShotWind(startX, startY, shotPower, endX, endY);
+      els.ballLayer.appendChild(ball);
+      ball.addEventListener("animationend", () => {
+        addLandedBall(Number(ball.dataset.landX), Number(ball.dataset.landY));
+        completeCustomerShot(stall);
+        ball.remove();
+      }, { once: true });
+      if (hitTarget) {
+        setTimeout(() => awardTargetHit(hitTarget), flightTime * 820);
+      }
+      setTimeout(() => stall.classList.remove("active"), 700);
+    }
+
+    function showShotWind(x, y, power, endX, endY) {
+      const wind = document.createElement("div");
+      wind.className = "shot-wind";
+      const angle = Math.max(-42, Math.min(-8, Math.atan2(endY, endX) * 180 / Math.PI));
+      wind.style.setProperty("--wind-x", `${x + 4}px`);
+      wind.style.setProperty("--wind-y", `${y - 4}px`);
+      wind.style.setProperty("--power", power.toFixed(2));
+      wind.style.setProperty("--wind-angle", `${angle}deg`);
+      els.ballLayer.appendChild(wind);
+      wind.addEventListener("animationend", () => wind.remove(), { once: true });
+    }
+
+    function completeCustomerShot(stall) {
+      const bayIndex = Number(stall.dataset.bay);
+      if (!bayCustomers.has(bayIndex)) {
+        return;
+      }
+
+      const remaining = bayCustomers.get(bayIndex) - 1;
+      if (remaining <= 0) {
+        startCustomerLeavingBay(stall, bayIndex);
+        saveState();
+        render();
+        return;
+      }
+
+      bayCustomers.set(bayIndex, remaining);
+      bayNextShotAt.set(bayIndex, Date.now() + 1300 + Math.random() * 3600);
+      saveState();
+      render();
+    }
+
+    function startCustomerLeavingBay(stall, bayIndex) {
+      bayCustomers.delete(bayIndex);
+      bayNextShotAt.delete(bayIndex);
+      stall.classList.remove("entering");
+      stall.classList.add("leaving");
+      setTimeout(() => {
+        stall.classList.remove("occupied", "leaving");
+      }, 720);
+    }
+
+    function addLandedBall(x, y) {
+      const ball = document.createElement("div");
+      ball.className = "landed-ball";
+      ball.style.setProperty("--ball-x", `${x - 4}px`);
+      ball.style.setProperty("--ball-y", `${y - 4}px`);
+      els.ballLayer.appendChild(ball);
+
+      const maxBalls = 75;
+      const landedBalls = [...document.querySelectorAll(".landed-ball")];
+      if (landedBalls.length > maxBalls) {
+        landedBalls.slice(0, landedBalls.length - maxBalls).forEach((oldBall) => oldBall.remove());
+      }
+    }
+
+    function collectNearbyBalls() {
+      if (!state.upgrades.cart) {
+        return;
+      }
+
+      const cart = document.querySelector(".cart");
+      const range = document.querySelector(".range");
+      if (!cart || !range) {
+        return;
+      }
+
+      const rangeBox = range.getBoundingClientRect();
+      if (!cartPosition) {
+        cartPosition = {
+          x: -120,
+          y: rangeBox.height * 0.56
+        };
+      }
+
+      const lanes = [0.62, 0.54, 0.46, 0.38];
+      const targetY = rangeBox.height * lanes[cartSweepLane % lanes.length];
+      cartPosition.y += (targetY - cartPosition.y) * 0.08;
+      cartPosition.x += cartDirection * 9;
+
+      if (cartDirection > 0 && cartPosition.x > rangeBox.width + 120) {
+        cartDirection = -1;
+        cartSweepLane += 1;
+      }
+      if (cartDirection < 0 && cartPosition.x < -120) {
+        cartDirection = 1;
+        cartSweepLane += 1;
+      }
+
+      positionCart(cart);
+      collectBallsInCartPath(rangeBox);
+    }
+
+    function collectBallsInCartPath(rangeBox) {
+      let collected = 0;
+      document.querySelectorAll(".landed-ball:not(.collecting)").forEach((ball) => {
+        const ballBox = ball.getBoundingClientRect();
+        const ballCenterX = ballBox.left - rangeBox.left + ballBox.width / 2;
+        const ballCenterY = ballBox.top - rangeBox.top + ballBox.height / 2;
+        if (ballCenterY > rangeBox.height * 0.68) {
+          return;
+        }
+        const closeX = Math.abs(cartPosition.x - ballCenterX) < 60;
+        const closeY = Math.abs(cartPosition.y - ballCenterY) < 30;
+        if (closeX && closeY) {
+          ball.classList.add("collecting");
+          collected += 1;
+          setTimeout(() => ball.remove(), 420);
+        }
+      });
+
+      if (collected > 0) {
+        render();
+      }
+    }
+
+    function positionCart(cart) {
+      cart.style.left = `${cartPosition.x}px`;
+      cart.style.top = `${cartPosition.y}px`;
+      cart.style.transform = `translate(-50%, -50%) scaleX(${-cartDirection})`;
+    }
+
+    function upgradeViewModel(upgrade) {
+      const owned = state.upgrades[upgrade.id];
+      const cost = upgradeCost(upgrade);
+      const maxed = cost === null;
+      let title = `${upgrade.name} Lv. ${owned}`;
+      let detail = upgrade.status;
+
+      if (upgrade.id === "bays") {
+        title = `${upgrade.name}: ${owned}/${MAX_BAYS}`;
+        detail = maxed ? `All ${MAX_BAYS} bays are built.` : `Adds another customer bay. Next bay costs ${cost.toLocaleString()} points.`;
+      }
+      if (upgrade.id === "targets") {
+        title = `${upgrade.name}: ${Math.round(targetHitChance() * 100)}%`;
+        detail = maxed ? "Bullseye chance is maxed at 20%." : `Improves bullseye chance. Bullseyes currently pay +${bullseyeReward()} points. Next cost ${cost.toLocaleString()} points.`;
+      }
+      if (upgrade.id === "bullseyeMultiplier") {
+        title = `${upgrade.name}: ${bullseyeMultiplier()}x`;
+        detail = maxed
+          ? `Bullseye payout is maxed at +${bullseyeReward()} points.`
+          : `Raises bullseyes to +${(bullseyeMultiplier() + 1) * BULLSEYE_REWARD} points each. Next cost ${cost.toLocaleString()} points.`;
+      }
+      if (upgrade.id === "cart") {
+        title = state.upgrades.cart ? `Pickup cart: every ${cartPayoutInterval()}s` : "Pickup cart locked";
+        detail = maxed
+          ? `Cart payout speed is maxed at ${CART_PAYOUT} points every 10 seconds.`
+          : state.upgrades.cart
+            ? `Shortens cart payouts to every ${cartPayoutIntervalForLevel(state.upgrades.cart + 1)} seconds. Next cost ${cost.toLocaleString()} points.`
+            : `Unlocks the cart for ${CART_PAYOUT} points every 30 seconds.`;
+      }
+
+      return {
+        ...upgrade,
+        owned,
+        cost,
+        maxed,
+        disabled: maxed || state.points < cost,
+        canAfford: !maxed && state.points >= cost,
+        label: maxed ? "Max" : cost.toLocaleString(),
+        title,
+        detail
+      };
+    }
+
+    function quickUpgradeName(upgrade) {
+      if (upgrade.id === "bays") {
+        return "Bay";
+      }
+      if (upgrade.id === "targets") {
+        return "Target";
+      }
+      if (upgrade.id === "bullseyeMultiplier") {
+        return "Bullseye";
+      }
+      return state.upgrades.cart ? "Cart" : "Cart";
+    }
+
+    function quickUpgradePrice(upgrade) {
+      if (upgrade.maxed) {
+        return "Maxed";
+      }
+      return `${upgrade.cost.toLocaleString()} pts`;
+    }
+
+    function awardTargetHit(target) {
+      const reward = bullseyeReward();
+      state.points += reward;
+      saveState();
+      render();
+      animatePointGain(reward, true);
+      showBullseye(target);
+    }
+
+    function showBullseye(target) {
+      const pop = document.createElement("div");
+      pop.className = "bullseye-pop";
+      pop.textContent = `BULLSEYE +${bullseyeReward()}`;
+      const range = document.querySelector(".range");
+      if (!range) {
+        return;
+      }
+      const targetBox = target.getBoundingClientRect();
+      const rangeBox = range.getBoundingClientRect();
+      const x = targetBox.left - rangeBox.left + targetBox.width / 2;
+      const targetTop = targetBox.top - rangeBox.top;
+      const skyLimit = rangeBox.height * 0.22;
+      const y = Math.max(34, Math.min(targetTop - 86, skyLimit));
+      pop.style.setProperty("--pop-x", `${x}px`);
+      pop.style.setProperty("--pop-y", `${y}px`);
+      range.appendChild(pop);
+      pop.addEventListener("animationend", () => pop.remove(), { once: true });
+    }
+
+    function renderBays() {
+      const stallCount = state.upgrades.bays;
+      if (renderedBayCount === stallCount && els.stallRow.children.length === stallCount) {
+        document.querySelectorAll(".stall").forEach((stall, index) => {
+          if (bayCustomers.has(index) && !stall.classList.contains("leaving")) {
+            stall.classList.add("occupied");
+          } else if (!stall.classList.contains("leaving")) {
+            stall.classList.remove("occupied", "entering");
+          }
+        });
+        return;
+      }
+
+      els.stallRow.innerHTML = "";
+      renderedBayCount = stallCount;
+      bayCustomers = new Map([...bayCustomers].filter(([index]) => index < stallCount));
+      bayNextShotAt = new Map([...bayNextShotAt].filter(([index]) => index < stallCount));
+      if (!bayCustomers.size && stallCount > 0) {
+        bayCustomers.set(0, 10);
+        bayNextShotAt.set(0, Date.now() + 1200 + Math.random() * 2400);
+      }
+
+      for (let index = 0; index < stallCount; index += 1) {
+        const stall = document.createElement("div");
+        stall.className = `stall${bayCustomers.has(index) ? " occupied" : ""}`;
+        stall.dataset.bay = String(index);
+        stall.innerHTML = `
+          <div class="golfer">
+            <div class="player-cap"></div>
+            <div class="player-head"></div>
+            <div class="player-shirt"></div>
+            <div class="player-arm"></div>
+            <div class="player-leg"></div>
+            <div class="player-leg back"></div>
+            <div class="club"></div>
+          </div>
+        `;
+        els.stallRow.appendChild(stall);
+      }
+    }
+
+    function render() {
+      const income = displayedProfitPerSecond();
+      const level = calculateLevel();
+
+      els.points.textContent = Math.floor(state.points + Number(state.pendingIncome || 0)).toLocaleString();
+      els.income.textContent = income.toFixed(1).replace(/\.0$/, "");
+      els.level.textContent = level;
+      els.roundCount.textContent = state.rounds.length;
+
+      els.rangeName.textContent = state.rangeTitle || (state.upgrades.bays < 3 ? "Starter Range" : state.upgrades.bays < 5 ? "Busy Range" : "Range Empire");
+      els.rangeStatus.textContent = `${state.upgrades.bays} of ${MAX_BAYS} hitting bays open`;
+      document.querySelector("#rangeCart").classList.toggle("locked", !state.upgrades.cart);
+      applyCosmetics();
+      renderBays();
+      renderProgressCards();
+
+      const upgradeModels = upgrades.map(upgradeViewModel);
+      els.quickUpgrades.innerHTML = upgradeModels.map((upgrade) => `
+        <button class="quick-upgrade ${upgrade.canAfford ? "can-afford" : ""}" type="button" data-upgrade="${upgrade.id}" ${upgrade.disabled ? "disabled" : ""}>
+          ${quickUpgradeName(upgrade)}
+          <span>${quickUpgradePrice(upgrade)}</span>
+        </button>
+      `).join("");
+
+      const equippedClub = clubs.find((club) => club.id === state.clubs.equipped);
+      document.documentElement.style.setProperty("--driver-color", equippedClub?.color || "#101614");
+
+      els.clubs.innerHTML = clubs.map((club) => {
+        const owned = state.clubs.owned.includes(club.id);
+        const equipped = state.clubs.equipped === club.id;
+        const disabled = !owned && !club.realPrice && state.points < club.cost;
+        const label = equipped ? "Equipped" : owned ? "Equip" : club.realPrice || club.cost.toLocaleString();
+        const stateClass = equipped ? "equipped" : disabled ? "locked" : owned ? "owned" : "available";
+        return `
+          <article class="club-card ${stateClass}" style="--club-color: ${club.color}">
+            <div class="club-swatch"></div>
+            <div>
+              <h3>${club.name}</h3>
+              <p>${club.realPrice ? `Premium driver purchase. Adds ${club.income} points/sec.` : `${club.cost.toLocaleString()} points. Adds ${club.income} points/sec.`}</p>
+            </div>
+            <button class="btn buy" data-club="${club.id}" ${equipped || disabled ? "disabled" : ""}>${label}</button>
+          </article>
+        `;
+      }).join("");
+
+      els.shopItems.innerHTML = cosmeticItems.map((item) => {
+        const owned = state.cosmetics.owned.includes(item.id);
+        const equipped = item.type === "theme"
+          ? state.cosmetics.equippedTheme === item.id
+          : state.cosmetics.equippedDecor.includes(item.id);
+        const disabled = !owned && !item.realPrice && state.points < item.cost;
+        const label = equipped ? "On" : owned ? "Off" : item.realPrice || (item.cost === 0 ? "Free" : item.cost.toLocaleString());
+        const previewStyle = item.type === "theme"
+          ? `--preview-sky: ${item.preview.sky}; --preview-grass: ${item.preview.grass}; --preview-accent: ${item.preview.accent};`
+          : `--preview-accent: ${item.preview.accent}; --preview-extra: ${item.preview.extra};`;
+        const priceText = owned ? "Owned. Tap to turn on or off." : item.realPrice ? `${item.realPrice} premium cosmetic. Free during testing.` : `${item.cost.toLocaleString()} points.`;
+        return `
+          <article class="shop-card">
+            <div class="shop-preview ${item.type === "decor" ? "decor-preview" : ""}" style="${previewStyle}"></div>
+            <div>
+              <h3>${escapeHtml(item.name)}</h3>
+              <p>${escapeHtml(item.description)} ${priceText}</p>
+            </div>
+            <button class="btn buy" data-cosmetic="${item.id}" ${disabled ? "disabled" : ""}>${label}</button>
+          </article>
+        `;
+      }).join("");
+
+      const handicap = handicapIndex();
+      els.handicapCard.innerHTML = `
+        <h3>${handicap.label}</h3>
+        <p>${escapeHtml(handicap.detail)}</p>
+      `;
+
+      const playerScore = tycoonScore();
+      const leaders = [
+        { name: "You", score: playerScore, level, handicap: handicap.label, player: true },
+        ...friendTycoons
+      ].sort((a, b) => b.score - a.score);
+      els.leaderboard.innerHTML = leaders.map((friend, index) => `
+        <article class="leader-card ${friend.player ? "player" : ""}">
+          <div class="leader-rank">#${index + 1}</div>
+          <div>
+            <h3>${escapeHtml(friend.name)}</h3>
+            <p>Level ${friend.level} - Handicap ${friend.handicap}</p>
+          </div>
+          <div class="leader-score">${friend.score.toLocaleString()}</div>
+        </article>
+      `).join("");
+
+      els.rounds.innerHTML = state.rounds.length
+        ? state.rounds.map((round) => `
+          <article class="round">
+            <h3>${escapeHtml(round.course)}</h3>
+            <div class="round-meta">
+              <span class="tag">${round.date}</span>
+              <span class="tag">${round.holeCount || 18} holes</span>
+              <span class="tag">Score ${round.score}</span>
+              <span class="tag">Diff ${round.differential}</span>
+              <span class="tag">+${round.earned} pts</span>
+            </div>
+            <p>Par ${round.par}, rating ${round.rating}, slope ${round.slope}</p>
+            ${round.holeScores?.length ? `<p>Holes: ${round.holeScores.join(" - ")}</p>` : ""}
+            ${round.scorecardImage ? `<div class="round-proof"><img src="${round.scorecardImage}" alt="Scorecard photo for ${escapeHtml(round.course)}"></div>` : ""}
+          </article>
+        `).join("")
+        : `<div class="empty">Add your first real round to start growing the range.</div>`;
+
+      document.querySelectorAll("[data-upgrade]").forEach((button) => {
+        button.addEventListener("click", () => buyUpgrade(button.dataset.upgrade));
+      });
+      document.querySelectorAll("[data-club]").forEach((button) => {
+        button.addEventListener("click", () => buyOrEquipClub(button.dataset.club));
+      });
+      document.querySelectorAll("[data-cosmetic]").forEach((button) => {
+        button.addEventListener("click", () => buyOrEquipCosmetic(button.dataset.cosmetic));
+      });
+    }
+
+    function escapeHtml(value) {
+      return value.replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      })[char]);
+    }
+
+    let toastTimer;
+    function showToast(message) {
+      clearTimeout(toastTimer);
+      els.toast.textContent = message;
+      els.toast.classList.add("show");
+      toastTimer = setTimeout(() => els.toast.classList.remove("show"), 2200);
+    }
+
+    els.form.addEventListener("submit", addRound);
+    els.courseForm.addEventListener("submit", addCustomCourse);
+    els.showCourseFormBtn.addEventListener("click", () => {
+      els.courseAddPanel.hidden = false;
+      document.querySelector("#newCourseName").focus();
+    });
+    els.cancelCourseFormBtn.addEventListener("click", () => {
+      els.courseForm.reset();
+      els.courseAddPanel.hidden = true;
+    });
+    els.appleLoginBtn.addEventListener("click", () => {
+      completeLogin("apple", "Apple account");
+    });
+    els.guestLoginBtn.addEventListener("click", () => {
+      completeLogin("guest", "Guest player");
+    });
+    els.tutorialOverlay.addEventListener("click", (event) => {
+      if (tutorialIndex < 0 || event.target.closest("form")) {
+        return;
+      }
+      showNextTutorialStep();
+    });
+    els.testPointsBtn.addEventListener("click", () => {
+      state.points += 500000;
+      saveState();
+      render();
+      showToast("+500,000 testing points");
+    });
+    els.resetBtn.addEventListener("click", resetGame);
+    document.querySelectorAll("[data-view]").forEach((button) => {
+      button.addEventListener("click", () => showView(button.dataset.view));
+    });
+    els.course.addEventListener("input", renderCourseMatches);
+    els.course.addEventListener("focus", renderCourseMatches);
+    els.holeCount.addEventListener("change", () => {
+      if (!els.holeEntryPanel.hidden) {
+        renderHoleInputs();
+      }
+    });
+    els.submitHoleScoresBtn.addEventListener("click", () => els.form.requestSubmit());
+    els.closeHoleScoresBtn.addEventListener("click", closeHoleScores);
+    els.form.querySelector("button[type='submit']").addEventListener("click", (event) => {
+      if (currentScorecardImage && els.score.value === "") {
+        event.preventDefault();
+        els.holeEntryPanel.hidden = false;
+      }
+    });
+    els.scanScorecardBtn.addEventListener("click", scanScorecard);
+    els.photoLibraryBtn.addEventListener("click", openPhotoLibrary);
+    els.scorecardPhoto.addEventListener("change", scanPhotoLibraryScorecard);
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest(".course-search")) {
+        els.courseResults.classList.remove("show");
+      }
+    });
+
+    collectOfflineIncome();
+    render();
+    updateCustomers(true);
+    launchRangeBalls();
+    showStartupFlow();
+    setInterval(onlineIncomeTick, 1000);
+    setInterval(launchRangeBalls, 700);
+    setInterval(() => updateCustomers(false), 4200);
+    setInterval(collectNearbyBalls, 120);
+  </script>
+</body>
+</html>
